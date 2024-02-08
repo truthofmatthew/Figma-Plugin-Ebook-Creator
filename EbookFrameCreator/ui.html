@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Layer Creator</title>
+    <style>
+      body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f7f7f7;
+    color: #333;
+}
+textarea {
+    width: 100%;
+    height: 150px;
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #d1d1d1;
+    border-radius: 4px;
+    resize: none;
+    box-sizing: border-box;
+    font-family: inherit;
+    color: #333;
+}
+.option-buttons, .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+button, .help-button {
+    padding: 10px 15px;
+    margin: 0 5px;
+    cursor: pointer;
+    border: 1px solid #d1d1d1;
+    background-color: #fff;
+    border-radius: 4px;
+    font-family: inherit;
+    color: #333;
+    box-sizing: border-box;
+}
+.footer {
+    font-size: 12px;
+}
+.footer a, .footer span {
+    margin-right: 10px;
+}
+.separator {
+    border: 0;
+    height: 2px;
+    background: #e1e1e1;
+    margin: 20px 0;
+}
+#simpleStyle {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+}
+
+    </style>
+   
+
+</head>
+<body>
+    <textarea id="textBlock" placeholder="Paste your text here..."></textarea>
+    <div class="option-buttons">
+        <button id="bulletPointStyle">Bullet Point Style</button>
+        <button id="simpleStyle" disabled>Simple Style</button>
+        <button id="helpButton" class="help-button">?</button>
+    </div>
+    <hr class="separator">
+    <div class="footer">
+      <span>🐱 <a href="https://github.com/mtkarimi/EbookFrameCreator/" target="_blank">Source on GitHub</a></span>
+      <span>❤️ by <a href="https://www.linkedin.com/in/mtkarimi/" target="_blank">Mathew</a></span>
+      <span>V 0.1</span>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="helpModal" style="display:none; position:fixed; z-index:1; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgb(0,0,0,0.4);">
+      <div style="background-color:#fefefe; margin:15% auto; padding:20px; border:1px solid #888; width:80%;">
+          <span id="closeModal" style="color:#aaa; float:right; font-size:28px; font-weight:bold; cursor:pointer;">&times;</span>
+          <p>For making ebooks, copy the text below to your ChatGPT for getting the correct response style:</p>
+          <button id="copyTextBtn" style="cursor: pointer; padding: 5px 10px; margin-bottom: 10px;">Copy Text</button>
+          <hr>
+          <pre id="guideText" style="white-space:pre-wrap; word-wrap:break-word; margin-top: 20px;">
+            Create a dynamic instructional guide that adapts to varying business scenarios, focusing on the integration of innovative technologies. The guide should be structured to accommodate changes in sub-point labels, allowing for a tailored approach depending on the context. Use the following guidelines to structure the content:
+            
+            Title Formatting: Begin with a bold title using double asterisks on both sides to highlight the main sections or topics of the guide.
+            Structured Bullet Points:
+            Use bullet points to list the main points or steps, providing a clear structure.
+            Number the bullet points if they follow a specific sequence or order of importance.
+            Dynamic Labels for Sub-points:
+            Under each main bullet point, include sub-points that are dynamically labeled based on the content's focus. The labels could be Application, Practical Use, Case Study, Outcome, Prompt, or any other relevant term.
+            For each sub-point, use italics for the label to distinguish it from the main point. The label should reflect the type of detail being provided, whether it’s an application method, a practical example, a case study analysis, the expected outcome, or a specific prompt for action.
+            Example Structure:
+            
+            [Title of the Section]
+            
+            Highlight the main topic or section with bold formatting to draw attention.
+            [First Main Point]:
+            Dynamic Label: Depending on the focus, describe the relevant application, provide a case study, outline expected outcomes, present a practical example, or issue a prompt for action. Use italics for the label.
+            Ensure the content under this label is directly relevant to the main point and provides valuable insights or instructions.
+            [Second Main Point]:
+            Continue to use dynamic labels for each main point, ensuring the sub-point content is tailored and informative.
+            Concluding Remarks:
+            
+            Wrap up with a summary or closing thoughts that bring together all the main points, emphasizing the key messages or takeaways.
+            </pre>      </div>
+    </div>
+
+
+</body>
+<script type="module" src="dist/main.js"></script>
+<!-- <script type="module" src="uiHandlers.js"></script> -->
+<!-- <script type="module" src="dist/ui.js"></script> -->
+ <script>
+ 
+document.addEventListener('DOMContentLoaded', function () {
+    const bulletPointStyleBtn = document.getElementById('bulletPointStyle');
+    const helpButton = document.getElementById('helpButton');
+    const closeModal = document.getElementById('closeModal');
+    const copyTextBtn = document.getElementById('copyTextBtn');
+    const textBlock = document.getElementById('textBlock');
+
+    // Initially disable the bulletPointStyle button if the textarea is empty
+    bulletPointStyleBtn.disabled = !textBlock.value.trim();
+
+    // Input event for textarea
+    textBlock.addEventListener('input', () => {
+        // Disable the bulletPointStyle button if textarea is empty
+        bulletPointStyleBtn.disabled = !textBlock.value.trim();
+    });
+
+    bulletPointStyleBtn.addEventListener('click', () => {
+        const text = textBlock.value;
+        parent.postMessage({ pluginMessage: { type: 'create-text-layers', text } }, '*');
+    });
+
+    helpButton.addEventListener('click', function () {
+        const helpModal = document.getElementById('helpModal');
+        helpModal.style.display = "block";
+    });
+
+    closeModal.addEventListener('click', function () {
+        const helpModal = document.getElementById('helpModal');
+        helpModal.style.display = "none";
+    });
+
+    window.onclick = function (event) {
+        const helpModal = document.getElementById('helpModal');
+        if (event.target == helpModal) {
+            helpModal.style.display = "none";
+        }
+    };
+
+    copyTextBtn.addEventListener('click', function () {
+        const guideText = document.getElementById('guideText');
+        if (navigator.clipboard && window.isSecureContext) {
+            // Use the Clipboard API when available
+            navigator.clipboard.writeText(guideText.innerText).then(() => {
+                alert('Text copied to clipboard');
+            }).catch(err => {
+                console.error('Error copying text: ', err);
+            });
+        } else {
+            // Fallback method for copying text
+            let textArea = document.createElement("textarea");
+            textArea.value = guideText.innerText;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                let successful = document.execCommand('copy');
+                alert('Text copied to clipboard');
+            } catch (err) {
+                console.error('Fallback: Oops, unable to copy', err);
+            }
+            document.body.removeChild(textArea);
+        }
+    });
+
+
+
+
+
+    
+});
+</script>
+</html>
