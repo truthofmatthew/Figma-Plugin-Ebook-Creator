@@ -5,6 +5,7 @@ export const colors = {
     bulletPointAndText: "#B30109", // For the bullet point and the text in front of it
     mixedStylesText: "#CE5057", // For texts that have mixed styles
     backgroundAndNumber: "#FFFBEF", // For the background of the frames and the text number inside of the bullet point
+    greyPlaceHolder: "#CCCCCC",
   };
 
 export const fontStyles = {

@@ -6,76 +6,94 @@
     <title>Text Layer Creator</title>
     <style>
       body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    margin: 0;
-    padding: 20px;
-    background-color: #f7f7f7;
-    color: #333;
-}
-textarea {
-    width: 100%;
-    height: 150px;
-    margin-bottom: 20px;
-    padding: 10px;
-    border: 1px solid #d1d1d1;
-    border-radius: 4px;
-    resize: none;
-    box-sizing: border-box;
-    font-family: inherit;
-    color: #333;
-}
-.option-buttons, .footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-button, .help-button {
-    padding: 10px 15px;
-    margin: 0 5px;
-    cursor: pointer;
-    border: 1px solid #d1d1d1;
-    background-color: #fff;
-    border-radius: 4px;
-    font-family: inherit;
-    color: #333;
-    box-sizing: border-box;
-}
-.footer {
-    font-size: 12px;
-}
-.footer a, .footer span {
-    margin-right: 10px;
-}
-.separator {
-    border: 0;
-    height: 2px;
-    background: #e1e1e1;
-    margin: 20px 0;
-}
-#simpleStyle {
-    background-color: #ccc;
-    color: #666;
-    cursor: not-allowed;
-}
-
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+        Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f7f7f7;
+        color: #333;
+      }
+      textarea {
+        width: 100%;
+        height: 150px;
+        margin-bottom: 5px;
+        padding: 10px;
+        border: 1px solid #d1d1d1;
+        border-radius: 4px;
+        resize: none;
+        box-sizing: border-box;
+        font-family: inherit;
+        color: #333;
+      }
+      .option-buttons, .footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      button, .help-button {
+        padding: 10px 15px;
+        margin: 0 5px;
+        cursor: pointer;
+        border: none; /* Updated */
+        background-color: #0275d8; /* Updated */
+        color: #fff; /* Updated */
+        border-radius: 4px;
+        font-family: inherit;
+        transition: background-color 0.3s ease; /* Added */
+      }
+      button:hover, .help-button:hover {
+        background-color: #025aa5; /* Updated */
+      }
+      .template-selection {
+        margin-bottom: 20px; /* Added */
+      }
+      .template-selection label {
+        display: block; /* Updated */
+        margin-bottom: 5px; /* Updated */
+      }
+      .template-selection input[type="radio"] {
+        margin-right: 10px; /* Added */
+      }
+      .footer {
+        font-size: 12px;
+      }
+      .footer a, .footer span {
+        margin-right: 10px;
+      }
+      .separator {
+        border: 0;
+        height: 2px;
+        background: #e1e1e1;
+        margin: 20px 0;
+      }
     </style>
-   
-
 </head>
 <body>
     <textarea id="textBlock" placeholder="Paste your text here..."></textarea>
+    <div class="template-selection">
+      <p>Select your type:</p>
+      <select id="typeSelection">
+        <option value="ai_automation">AI Automation (Many Frames)</option>
+          <!-- <option value="introduction">Introduction (5 Frames)</option>
+          <option value="explanation">Explanation (4 Frames)</option>
+          <option value="bulletPoint1">Bullet-Point 1 (5 Frames)</option>
+          <option value="bulletPoint2">Bullet-Point 2 (5 Frames)</option>
+          <option value="reference">Reference (3 Frames)</option>
+          <option value="appendix">Appendix (5 Frames)</option>
+          <option value="conclusionSummary">Conclusion and Summary (7 Frames)</option> -->
+      </select>
+  </div>
+  
     <div class="option-buttons">
-        <button id="bulletPointStyle">Bullet Point Style</button>
-        <button id="simpleStyle" disabled>Simple Style</button>
+        <button id="submitBtn">Submit</button>
         <button id="helpButton" class="help-button">?</button>
     </div>
     <hr class="separator">
     <div class="footer">
       <span>🐱 <a href="https://github.com/mtkarimi/EbookFrameCreator/" target="_blank">Source on GitHub</a></span>
       <span>❤️ by <a href="https://www.linkedin.com/in/mtkarimi/" target="_blank">Mathew</a></span>
-      <span>V 0.1</span>
+      <span>V 0.1.4</span>
     </div>
 
     <!-- Help Modal -->
@@ -119,25 +137,27 @@ button, .help-button {
  <script>
  
 document.addEventListener('DOMContentLoaded', function () {
-    const bulletPointStyleBtn = document.getElementById('bulletPointStyle');
     const helpButton = document.getElementById('helpButton');
     const closeModal = document.getElementById('closeModal');
     const copyTextBtn = document.getElementById('copyTextBtn');
     const textBlock = document.getElementById('textBlock');
-
-    // Initially disable the bulletPointStyle button if the textarea is empty
-    bulletPointStyleBtn.disabled = !textBlock.value.trim();
-
-    // Input event for textarea
-    textBlock.addEventListener('input', () => {
-        // Disable the bulletPointStyle button if textarea is empty
-        bulletPointStyleBtn.disabled = !textBlock.value.trim();
-    });
-
-    bulletPointStyleBtn.addEventListener('click', () => {
+    const submitBtn = document.getElementById('submitBtn'); // The ID of your submit button
+    const requiredHeight = Math.min(document.body.scrollHeight, 600);
+ 
+    // Function to handle submission
+    function handleSubmit() {
+      console.clear();
+      const selectedType = document.getElementById('typeSelection').value;
         const text = textBlock.value;
-        parent.postMessage({ pluginMessage: { type: 'create-text-layers', text } }, '*');
-    });
+        const textLines = text.split('\n').filter(line => line.trim() !== '');
+
+     
+        parent.postMessage({ pluginMessage: { type: 'create-text-layers', text, selectedType } }, '*');
+
+    }
+
+            // Attach the event listener to your submit button
+    submitBtn.addEventListener('click', handleSubmit);
 
     helpButton.addEventListener('click', function () {
         const helpModal = document.getElementById('helpModal');
@@ -161,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (navigator.clipboard && window.isSecureContext) {
             // Use the Clipboard API when available
             navigator.clipboard.writeText(guideText.innerText).then(() => {
-                alert('Text copied to clipboard');
+              parent.postMessage({ pluginMessage: { type: 'notify', message: 'Text copied to clipboard' } }, '*');
             }).catch(err => {
                 console.error('Error copying text: ', err);
             });
@@ -174,7 +194,7 @@ document.addEventListener('DOMContentLoaded', function () {
             textArea.select();
             try {
                 let successful = document.execCommand('copy');
-                alert('Text copied to clipboard');
+                parent.postMessage({ pluginMessage: { type: 'notify', message: 'Text copied to clipboard' } }, '*');
             } catch (err) {
                 console.error('Fallback: Oops, unable to copy', err);
             }
@@ -183,6 +203,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 
+    parent.postMessage({ pluginMessage: { type: 'resize-ui', height: requiredHeight } }, '*');
 
 
 
