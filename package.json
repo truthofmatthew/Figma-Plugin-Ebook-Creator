@@ -1,5 +1,5 @@
 {
-  "name": "ebookframecreator",
+  "name": "Ebook Frame Creator",
   "version": "0.1.4",
   "description": "Simply create ebook pdf page's by copy and pasting your content into this plugin. at the moment it have only 14 template and they can not be edited before creation.",
   "main": "code.js",

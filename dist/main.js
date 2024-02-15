@@ -1406,14 +1406,15 @@ function createImagePlaceholder(frame, startY ,width, height, xPos=55) {
 
 
 
-figma.showUI(__html__);
+// Adjust the size when showing the UI
+figma.showUI(__html__ );
+
 
 figma.ui.onmessage = async (msg) => {
   
   if (msg.type === 'resize-ui') {
     const newHeight = msg.height;
-    // Resize the UI with the new height, ensuring it does not exceed 600px
-    figma.ui.resize(400, newHeight);
+        figma.ui.resize(600, newHeight);
   }
   if (msg.type === 'create-text-layers') {
    
@@ -1426,6 +1427,6 @@ figma.ui.onmessage = async (msg) => {
     figma.notify(msg.message);}
 };
 
-  
+
 /******/ })()
 ;

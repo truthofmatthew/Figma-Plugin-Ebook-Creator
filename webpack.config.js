@@ -29,16 +29,16 @@ module.exports = {
       new TerserPlugin({
         terserOptions: {
             compress: {
-                drop_console: true, // Remove console logs for production
-                drop_debugger: true, // Remove debugger statements
+                drop_console: false, // Remove console logs for production
+                drop_debugger: false, // Remove debugger statements
                 // Additional compress options here
             },
             mangle: false, // Ensure this is enabled to obfuscate names
-            keep_classnames: true, // Consider the impact on your code
-            keep_fnames: true, // Consider the impact on your code
+            keep_classnames: false, // Consider the impact on your code
+            keep_fnames: false, // Consider the impact on your code
             // Additional mangle options here
         },
-        extractComments: true, // Remove comments
+        extractComments: false, // Remove comments
     })
     ,
     ],
