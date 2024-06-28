@@ -56,8 +56,13 @@
         margin-right: 10px; /* Added */
       }
       .footer {
-        font-size: 12px;
-      }
+    display: flex;
+    flex-direction: column; /* Stacks children vertically */
+    align-items: flex-start; /* Aligns children to the left */
+    font-size: 12px;
+    margin-top: 20px;
+  }
+  
       .footer a, .footer span {
         margin-right: 10px;
       }
@@ -75,21 +80,28 @@
      
   </div>
   <div class="option-buttons" style="margin-top: 10px; display: flex; justify-content: space-between;">
-      <button id="submitBtn">Submit</button>
-      <select id="typeSelection" style="width: 200px;">
-        <option value="ai_automation">AI Automation (Many Frames)</option>
-      </select>
+      <button id="submitBtn">Create Frames</button>
+      <div class="template-selection" style="margin-top: 10px; display: flex;">
+        <label style="margin-right: 10px;">
+          <input type="radio" name="textDirection" value="LTR" checked> LTR
+        </label>
+        <label>
+          <input type="radio" name="textDirection" value="RTL"> RTL
+        </label>
+      </div>
       <button id="helpButton" class="help-button">?</button>
   </div>
 
   
   <hr class="separator" style="margin-top: 10px;">
 
-  <div class="footer" style="font-size: 12px; margin-top: 10px;">
-    <span>🐱 <a href="https://github.com/mtkarimi/EbookFrameCreator/" target="_blank">Source on GitHub</a></span>
-    <span>❤️ by <a href="https://www.linkedin.com/in/mtkarimi/" target="_blank">Mathew</a></span>
-    <span>V 0.1.5</span>
+  <div class="footer" style="font-size: 12px;   margin-top: 20px;">
+    <div style="margin-bottom: 5px;">🐾 Made with ❤️ by <a href="https://www.linkedin.com/in/mtkarimi/" target="_blank" style="color: #0077B5;">Mathew</a>Let's connect!</div>
+    <div style="margin-bottom: 5px;">🌟 Check out the <a href="https://github.com/mtkarimi/EbookFrameCreator/" target="_blank" style="color: #333;">code on GitHub</a>and star it if you like!</div>
+    <div>🚀 Version 0.1.6</div>
   </div>
+  
+  
 
     <!-- Help Modal -->
     <div id="helpModal" style="display:none; position:fixed; z-index:1; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgb(0,0,0,0.4);">
@@ -142,12 +154,14 @@ document.addEventListener('DOMContentLoaded', function () {
     // Function to handle submission
     function handleSubmit() {
       console.clear();
-      const selectedType = document.getElementById('typeSelection').value;
-        const text = textBlock.value;
-        const textLines = text.split('\n').filter(line => line.trim() !== '');
+      // const selectedType = document.getElementById('typeSelection').value;
+      const textDirection = document.querySelector('input[name="textDirection"]:checked').value; // Capture the selected text direction
+
+      const text = textBlock.value;
+      const textLines = text.split('\n').filter(line => line.trim() !== '');
 
      
-        parent.postMessage({ pluginMessage: { type: 'create-text-layers', text, selectedType } }, '*');
+      parent.postMessage({ pluginMessage: { type: 'create-text-layers', text,  textDirection } }, '*');
 
     }
     const observer = new MutationObserver(mutations => {

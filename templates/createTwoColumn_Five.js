@@ -1,7 +1,7 @@
 import * as textGeneration from '../textGeneration.js';
 import { createImagePlaceholder } from '../frameGeneration.js';
 
-export async function createTwoColumn_Five(texts, frame) {
+export async function createTwoColumn_Five(texts, frame, textDirection) {
     await textGeneration.loadFonts(); // Ensure all necessary fonts are loaded
 
     // Initial setup for title and columns
@@ -11,7 +11,14 @@ export async function createTwoColumn_Five(texts, frame) {
     // Create the title with bold style
     if (texts.length > 0) {
         // Title
-        textLayerResult = await textGeneration.createTextLayer(`**${texts[0]}**`, yPos, frame, false, titleWidth, "**");
+        textLayerResult = await textGeneration.createTextLayer({
+            text: `**${texts[0]}**`,
+            yPos: yPos,
+            frame: frame,
+            width: titleWidth,
+            textDirection: textDirection,
+            style:  "**"
+        });
         yPos = textLayerResult.yPos; // Space after the title before columns start
     }
 
@@ -25,10 +32,29 @@ export async function createTwoColumn_Five(texts, frame) {
     if (texts.length >= 3) {
         // Create columns for the second and third lines of text
         // Column 1
-        textLayerResult = await textGeneration.createTextLayer(texts[1], yPos, frame, false, columnWidth, "", column1XOffset);
+        textLayerResult = await textGeneration.createTextLayer({
+            text: texts[1],
+            yPos: yPos,
+            frame: frame,
+            isDirectlyAfterBullet: false,
+            width: columnWidth,
+            textDirection: textDirection,
+            style:  "",
+            customXOffset: column1XOffset
+        });
+        
         yPos = textLayerResult.yPos; 
         // Column 2, yPos not updated because it should start at the same Y as column 1
-        await textGeneration.createTextLayer(texts[2], yPos, frame, false, columnWidth, "", column2XOffset);
+        await textGeneration.createTextLayer({
+            text: texts[2],
+            yPos: yPos,
+            frame: frame,
+            isDirectlyAfterBullet: false,
+            width: columnWidth,
+            textDirection: textDirection,
+            style:  "",
+            customXOffset: column2XOffset
+        });
 
         // After columns, adjust yPos for the placeholder. Assuming a fixed height for text layers, adjust if necessary
        // Assuming 251px is the height of columns + 20px space after columns

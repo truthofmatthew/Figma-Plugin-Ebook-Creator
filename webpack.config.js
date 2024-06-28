@@ -2,7 +2,7 @@ const path = require('path');
 const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
-  mode: 'development', // or 'production' when ready to build for production
+  mode: 'development', // Use 'production' for deployment
   entry: {
     main: './code.js',
     ui: './uiHandlers.js',
@@ -24,23 +24,25 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
   },
   optimization: {
-    minimize: false, // Ensure this is true in production mode
+    minimize: false, // Already set to disable code minimization
     minimizer: [
       new TerserPlugin({
         terserOptions: {
-            compress: {
-                drop_console: false, // Remove console logs for production
-                drop_debugger: false, // Remove debugger statements
-                // Additional compress options here
-            },
-            mangle: false, // Ensure this is enabled to obfuscate names
-            keep_classnames: false, // Consider the impact on your code
-            keep_fnames: false, // Consider the impact on your code
-            // Additional mangle options here
+          compress: {
+            // Set to false or adjust according to your needs for debugging
+            drop_console: false,
+            drop_debugger: false,
+          },
+          mangle: {
+            // Disable mangle to make the code more readable in debug mode
+            properties: false, // Ensure property names are not mangled
+          },
+          // Preserving class and function names can aid in debugging
+          keep_classnames: true,
+          keep_fnames: true,
         },
-        extractComments: false, // Remove comments
-    })
-    ,
+        extractComments: false, // Can be set to true if you want to keep comments
+      }),
     ],
   },
 };

@@ -1,7 +1,7 @@
 import * as textGeneration from '../textGeneration.js';
 import { createImagePlaceholder } from '../frameGeneration.js';
 
-export async function createSimple_Title_Desc_Image_ColumnStyle(texts, frame) {
+export async function createSimple_Title_Desc_Image_ColumnStyle(texts, frame, textDirection) {
     await textGeneration.loadFonts(); // Ensure fonts are loaded before creating text layers
 
     let xPos = 55; // Starting X position
@@ -16,7 +16,13 @@ export async function createSimple_Title_Desc_Image_ColumnStyle(texts, frame) {
 
     // Iterate through texts and create text layers at specified positions
     for (let i = 0; i < texts.length; i++) {
-        textLayerResult = await textGeneration.createTextLayer(texts[i], yPos, frame, false, layerWidth);
+        textLayerResult = await textGeneration.createTextLayer({
+            text: texts[i],
+            yPos: yPos,
+            frame: frame,
+            textDirection: textDirection
+            // Any other parameters you wish to specify, otherwise defaults will be used
+        } );
         // No need to update yPos here since we're stacking horizontally
         // Update xPos for the next layer, including the margin
         xPos += layerWidth + marginBetweenLayers;

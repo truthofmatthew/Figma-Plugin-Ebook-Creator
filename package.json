@@ -11,10 +11,27 @@
   "license": "ISC",
   "devDependencies": {
     "@figma/plugin-typings": "*",
+    "copy-webpack-plugin": "^12.0.2",
+    "css-loader": "^6.10.0",
+    "html-loader": "^5.0.0",
+    "imagemin-webpack-plugin": "^2.4.2",
+    "mini-css-extract-plugin": "^2.8.1",
+    "terser-webpack-plugin": "^5.3.10",
     "ts-loader": "^9.5.1",
     "typescript": "^5.3.3",
-    "webpack": "^5.90.1",
+    "url-loader": "^4.1.1",
+    "webpack": "^5.90.3",
+    "webpack-bundle-analyzer": "^4.10.1",
     "webpack-cli": "^5.1.4"
   },
-  "keywords": ["chatgpt","pdf","automation"]
+  "keywords": [
+    "chatgpt",
+    "pdf",
+    "automation"
+  ],
+  "dependencies": {
+    "remark": "^15.0.1",
+    "remark-parse": "^11.0.0",
+    "unist-util-visit": "^5.0.0"
+  }
 }

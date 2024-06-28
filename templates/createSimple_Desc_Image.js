@@ -1,7 +1,7 @@
 import * as textGeneration from '../textGeneration.js';
 import { createImagePlaceholder } from '../frameGeneration.js';
 
-export async function createSimple_Desc_Image(texts, frame) {
+export async function createSimple_Desc_Image(texts, frame, textDirection) {
     await textGeneration.loadFonts(); // Ensure fonts are loaded before creating text layers
     let yPos = 65; // Starting Y position
 
@@ -9,7 +9,13 @@ export async function createSimple_Desc_Image(texts, frame) {
 
     // Create the first text layer and update yPos based on its actual height
     if (texts.length > 0) {
-        textLayerResult = await textGeneration.createTextLayer(texts[0], yPos, frame);
+        textLayerResult = await textGeneration.createTextLayer({
+            text: texts[0],
+            yPos: yPos,
+            frame: frame,
+            textDirection: textDirection
+            // Any other parameters you wish to specify, otherwise defaults will be used
+        });
         yPos = textLayerResult.yPos; // Update yPos with the returned value
     }
 

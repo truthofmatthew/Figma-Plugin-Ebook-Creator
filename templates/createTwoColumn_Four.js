@@ -3,14 +3,22 @@ import { hexToRgb } from '../utilities.js';
 
 import { createImagePlaceholder } from '../frameGeneration.js';
 
-export async function createTwoColumn_Four(texts, frame) {
+export async function createTwoColumn_Four(texts, frame, textDirection) {
     await textGeneration.loadFonts(); // Ensure fonts are loaded before creating text layers
     
     let yPos = 65; // Starting Y position for the title text
     let textLayerResult;
     // ** Style Text Layer (Title)
     if (texts.length > 0) {
-        textLayerResult = await textGeneration.createTextLayer(`**${texts[0]}**`, yPos, frame, true, frame.width - 110, "**");
+        textLayerResult = await textGeneration.createTextLayer({
+            text: `**${texts[0]}**`,
+            yPos: yPos,
+            frame: frame,
+            isDirectlyAfterBullet: true,
+            width: frame.width - 110,
+            textDirection: textDirection,
+            style:  "**"
+        });
         yPos = textLayerResult.yPos ; // Adjust space after the title for the divider or next content
     }
 
@@ -31,7 +39,14 @@ export async function createTwoColumn_Four(texts, frame) {
         
         // Assuming texts[1] and texts[2] contain the content for the two columns
         // This call might need adjustment based on how your text generation functions are set up
-        await textGeneration.createColumnTextLayers([texts[1], texts[2]], yPos, frame, columnWidths, columnXOffsets, styles);
+        await textGeneration.createColumnTextLayers({
+            texts: [texts[1], texts[2]],
+            initialYPos: yPos,
+            frame: frame,
+            columnWidths: columnWidths,
+            columnXOffsets: columnXOffsets,
+            styles: styles
+        });
     }
 
     // Further adjustments or text layers can be added here...

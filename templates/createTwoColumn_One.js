@@ -1,14 +1,22 @@
 import * as textGeneration from '../textGeneration.js';
 import { createImagePlaceholder } from '../frameGeneration.js';
 
-export async function createTwoColumn_One(texts, frame) {
+export async function createTwoColumn_One(texts, frame, textDirection) {
     await textGeneration.loadFonts(); // Ensure fonts are loaded before creating text layers
     
     let yPos = 65; // Starting Y position for the title
     let textLayerResult;
     // Create the title with bold style
     if (texts.length > 0) {
-        textLayerResult = await textGeneration.createTextLayer(`**${texts[0]}**`, yPos, frame, false, frame.width - 110, "**");
+        textLayerResult = await textGeneration.createTextLayer({
+            text: `**${texts[0]}**`,
+            yPos: yPos,
+            frame: frame,
+            width: frame.width - 110,
+            textDirection: textDirection,
+            style:  "**"
+        });
+        
         yPos = textLayerResult.yPos ; // Adjust space after the title
     }
     let columnCreationResult;
@@ -18,8 +26,16 @@ export async function createTwoColumn_One(texts, frame) {
         const columnXOffsets = [55, 340]; // X offset for the second column assumes a 55 margin and a 45 margin between columns
         const styles = ["", ""]; // No specific styles for these texts
         
-        // Call createColumnTextLayers for the second and third lines
-        columnCreationResult = await textGeneration.createColumnTextLayers([texts[1], texts[2]], yPos, frame, columnWidths, columnXOffsets, styles);
+        
+ 
+        columnCreationResult = await textGeneration.createColumnTextLayers({
+            texts: [texts[1], texts[2]],
+            initialYPos: yPos,
+            frame: frame,
+            columnWidths: columnWidths,
+            columnXOffsets: columnXOffsets,
+            styles: styles
+        });
         yPos = columnCreationResult.yPos; // Update yPos with the returned value
 
     }

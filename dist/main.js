@@ -4,6 +4,29 @@ var __webpack_exports__ = {};
 
 ;// CONCATENATED MODULE: ./constants.js
 // constants.js
+
+
+
+
+const regexPatterns = {
+  bulletHeaderNumber: [
+      { pattern: /^\d+\.\s*\*\*(.*?)(?<!\*\*):\*\*$/ },
+      { pattern: /\*\*(.*?)(?<!\*\*):\*\*$/ },
+      { pattern: /^\d+\.\s*\*\*(.*?):\*\*/ },
+      { pattern: /^\d+\.\s*\*\*(.*?)\*\*$/ }
+  ],
+  identifyTextType: [
+      { pattern: /^\*\*(.*?)\*\*$/, type: 'mainTitle' },
+      { pattern: /^\d+\.\s*\*\*(.*?)(?<!\*\*):\*\*$/, type: 'bulletHeader' },
+      { pattern: /\*\*(.*?)(?<!\*\*):\*\*$/, type: 'bulletHeader' },
+      { pattern: /^\d+\.\s*\*\*(.*?):\*\*/, type: 'bulletHeader' },
+      { pattern: /^\d+\.\s*\*\*(.*?)\*\*$/, type: 'bulletHeader' },
+      { pattern: /^(-|\*)\s*\*\*|\*\*/, type: 'insideText' },
+      { pattern: /\*/, type: 'insideText' }
+  ]
+};
+
+
 const colors = {
     regularText: "#0B5465", // For regular text without any styles
     highlightedText: "#027998", // For text between ** **
@@ -19,6 +42,11 @@ const fontStyles = {
     dmSansRegular: { family: 'DM Sans', style: 'Regular' },
   };
 
+  /* harmony default export */ const constants = ({
+    uiWidth: 400,
+    minFrameSize: [400, 300], 
+ 
+  });
 ;// CONCATENATED MODULE: ./utilities.js
 // utilities.js
 function hexToRgb(hex) {
@@ -28,101 +56,100 @@ function hexToRgb(hex) {
     return { r, g, b };
   }
 ;// CONCATENATED MODULE: ./textGeneration.js
-// textGeneration.js
+
+// textgeneration.js
+
+
 
 
 
 async function loadFonts() {
-    await Promise.all([
-        figma.loadFontAsync(fontStyles.roxboroughBold),
-        figma.loadFontAsync(fontStyles.dmSansBold),
-        figma.loadFontAsync(fontStyles.dmSansRegular),
-    ]);
+    const fontsToLoad = [fontStyles.roxboroughBold, fontStyles.dmSansBold, fontStyles.dmSansRegular];
+    await Promise.all(fontsToLoad.map(font => figma.loadFontAsync(font)));
 }
+
 let textNodeCounter = 0;
 
-
-// function startsAndEndsWithBoldMarkers(text) {
-//     const trimmedText = text.trim();
-//     // Regex to match text that starts with optional leading characters followed by '**', and optionally ends with '**'
-//     const boldRegex = /^[-\s]*\*\*(.+?)\*\*$/;
-//     return boldRegex.test(trimmedText);
-// } o##$#$$#$#$$#$#$#$# >>>> old but important
-
-function startsAndEndsWithBoldMarkers(text) {
-    const boldRegex = /^\*\*(.*?)\*\*$/;
-    return boldRegex.test(text);
+function regexTest(text, patterns) {
+    return patterns.some(pattern => pattern.test(text));
 }
+
+// function identifyTextType(text) {
+//     let type = null;
+//     regexPatterns.identifyTextType.forEach(({ pattern, type: patternType }) => {
+//         if (pattern.test(text)) {
+//             type = patternType;
+//         }
+//     });
+//     return type;
+// }
 
 function identifyTextType(text) {
     const trimmedText = text.trim();
-
-    // Main Titles: Text strictly within ** at the start and end
-    // if (trimmedText.startsWith('**') && trimmedText.endsWith('**')) {
-    // if (trimmedText.startsWith('**') && trimmedText.endsWith('**') && !trimmedText.includes(':')) {
-
-    //     return 'mainTitle';
-    // }
-    if (startsAndEndsWithBoldMarkers(trimmedText)) {
+    if (regexTest(trimmedText, [/^\*\*(.*?)\*\*$/])) {
         return 'mainTitle';
     }
-
-    // Identify bullet headers, both "1. **text**:" and "**text 1:**" formats
-    // Adjusting Bullet Headers regex to be more inclusive
-    // Matches "1. **text**:" format
-    // const bulletHeaderRegex1 = /^\d+\.\s*\*\*(.*?)\*\*:/;
-    // // Matches "**text 1:**" format more reliably
-    // // const bulletHeaderRegex2 = /\*\*(.*?)\*\*\s\d+:$/;
-
-    // const bulletHeaderRegex2 = /\*\*-?.*?\d+:-?\*\*$/;
-    const bulletHeaderRegex1 = /^\d+\.\s*\*\*(.*?)(?<!\*\*):\*\*$/;
-    const bulletHeaderRegex2 = /\*\*(.*?)(?<!\*\*):\*\*$/;
-    // const bulletHeaderRegex3 = /\*\*(.*?)\*\*:/;
-    const bulletHeaderRegex3 = /^\d+\.\s*\*\*(.*?):\*\*/;
-    const bulletHeaderRegex4 = /^\d+\.\s*\*\*(.*?)\*\*/;
-
-    if (bulletHeaderRegex1.test(trimmedText)) {
-        return 'bulletHeader';
-    } else if (bulletHeaderRegex2.test(trimmedText)) {
-        return 'bulletHeader';
-    }else if (bulletHeaderRegex3.test(trimmedText)) { // Check for "**Example:**" format
-        return 'bulletHeader';
-    }else if (bulletHeaderRegex4.test(trimmedText)) { // Check for "**Example:**" format
+    if (regexTest(trimmedText, [
+        /^\d+\.\s*\*\*(.*?)(?<!\*\*):\*\*$/,
+        /\*\*(.*?)(?<!\*\*):\*\*$/,
+        /^\d+\.\s*\*\*(.*?):\*\*/,
+        /^\d+\.\s*\*\*(.*?)\*\*$/
+    ])) {
         return 'bulletHeader';
     }
-
-    // // Bullet Headers: Numbered or bulleted items followed by bold text
-    // const bulletHeaderRegex = /^(\d+\.|-)\s*\*\*.*?\*\*:/;
-    // if (bulletHeaderRegex.test(trimmedText)) {
-    //     return 'bulletHeader';
-    // }
-
-    // Text under bullets or inside text that might need bold processing
-    // This includes text starting with "-", "*", or text that includes "**" anywhere
-    // const insideTextRegex = /^(-|\*)\s*\*\*|\*\*/;
-    // if (insideTextRegex.test(trimmedText) || trimmedText.includes('*')) {
-    //     return 'insideText';
-    // }
-    const insideTextRegex = /^(-|\*)\s*\*\*|\*\*/;
-    if (insideTextRegex.test(trimmedText) || trimmedText.includes('*')) {
+    if (regexTest(trimmedText, [/^(-|\*)\s*\*\*|\*\*/]) || trimmedText.includes('*')) {
         return 'insideText';
     }
-    // Default to 'unknown' if none of the above categories match
     return 'unknown';
 }
 
-let isDirectlyAfterBullet;
-async function createTextLayer(text, yPos, frame, isDirectlyAfterBullet = false, width = 486, style = "", customXOffset = null) {
-    let xOffset = customXOffset !== null ? customXOffset : 55; // Use customXOffset if provided, else default to 55
-    let margin = 10; // Default margin for text
-    let bulletNodeY = yPos; // Initialize with yPos, will update if bullet is created
-    let bulletNodeHeight = 39; // Initialize with the bullet node's height
-    let textNodeProperties = []; // Array to store properties of each text node created
+
+function extractBulletHeaderNumber(text) {
+    const regexPatterns = [
+        { pattern: /^\d+\.\s*\*\*(.*?)(?<!\*\*):\*\*$/, extract: /^\d+/ },
+        { pattern: /\*\*(.*?)(?<!\*\*):\*\*$/, extract: /(\d+):-?\*\*$/ },
+        { pattern: /^\d+\.\s*\*\*(.*?):\*\*/, extract: /(\d+)\./ },
+        { pattern: /^\d+\.\s*\*\*(.*?)\*\*$/, extract: /(\d+)\./ }
+    ];
+
+    let number = null;
+    regexPatterns.forEach(({ pattern, extract }) => {
+        if (pattern.test(text)) {
+            const match = text.match(extract);
+            if (match && match[0]) {
+                number = match[0].match(/\d+/)[0]; // Ensure we are extracting only the number part
+            }
+        }
+    });
+
+    return number;
+
+}
+ 
+// function extractBulletHeaderNumber(text) {
+//     let number = null;
+//     regexPatterns.bulletHeaderNumber.forEach(({ pattern, extract }) => {
+//         if (pattern.test(text)) {
+//             const match = text.match(extract);
+//             if (match && match[0]) {
+//                 number = match[0].match(/\d+/)[0]; // Ensure we are extracting only the number part
+//             }
+//         }
+//     });
+
+//     return number;
+// }
+
+async function createTextLayer({text, yPos, frame, isDirectlyAfterBullet = false, width = 486, style = "", customXOffset = null, textDirection = 'LTR'}) {
+    let xOffset = customXOffset !== null ? customXOffset : 55;
+    let margin = 10;
+    let bulletNodeY = yPos;
+    let bulletNodeHeight = 39;
+    let textNodeProperties = [];
     let uniqueName;
     let textType = identifyTextType(text);
     const textNode = figma.createText();
     textNode.x = xOffset;
-    // Initially set yPos for textNode; it will be conditionally adjusted below
     textNode.y = yPos;
     let isTitle = false;
     let numberedTextMatch;
@@ -133,52 +160,27 @@ async function createTextLayer(text, yPos, frame, isDirectlyAfterBullet = false,
             textNode.fontName = fontStyles.roxboroughBold;
             textNode.fontSize = 32;
             text = text.trim().replace(/^[-\s]*/, '').replace(/^\*\*|\*\*$/g, '');
-
             textNode.fills = [{ type: 'SOLID', color: hexToRgb(colors.highlightedText) }];
             isTitle = true;
             margin = 20;
             break;
         case 'bulletHeader':
-            //  numberedTextMatch = text.match(/^(\d+)\.\s*(.*)/);
+            const trimmedText = text.trim();
+            let number = extractBulletHeaderNumber(trimmedText);
 
-            // const number = numberedTextMatch[1];
-            // const restOfText = numberedTextMatch[2];
-             const trimmedText = text.trim();
-            // const bulletHeaderRegex1 = /^\d+\.\s*\*\*(.*?)\*\*:/;
-            // // Adjusted to match "**-Example-1:-**" and "**Example 1:**" formats
-            // const bulletHeaderRegex2 = /\*\*-?.*?\d+:-?\*\*$/;
-
-            const bulletHeaderRegex1 = /^\d+\.\s*\*\*(.*?)(?<!\*\*):\*\*$/;
-            const bulletHeaderRegex2 = /\*\*(.*?)(?<!\*\*):\*\*$/;
-            const bulletHeaderRegex3 = /^\d+\.\s*\*\*(.*?):\*\*/;
-            const bulletHeaderRegex4 = /^\d+\.\s*\*\*(.*?)\*\*/;
-
-            if (bulletHeaderRegex1.test(trimmedText)) {
-
-                number = trimmedText.match(/^\d+/)[0];
-             } else if (bulletHeaderRegex2.test(trimmedText)) {
-
-                number = trimmedText.match(/(\d+):-?\*\*$/)[1];
-             }else if (bulletHeaderRegex3.test(trimmedText)) {  
-                number = trimmedText.match(/(\d+)\./)[1];
-     }else if (bulletHeaderRegex4.test(trimmedText)) {  
-        number = trimmedText.match(/(\d+)\./)[1];
- }
-
-
-
-            // Create bullet (rounded rectangle) for the number
             const bulletNode = figma.createRectangle();
-            bulletNode.resize(39, bulletNodeHeight); // Bullet size
-            bulletNode.cornerRadius = 10; // Rounded corners
-            bulletNode.x = xOffset;
+            bulletNode.resize(39, bulletNodeHeight);
+            bulletNode.cornerRadius = 10;
+            if (textDirection === 'RTL') {
+                bulletNode.x = frame.width - 54 - bulletNode.width - (customXOffset || 0);
+            } else {
+                bulletNode.x = xOffset;
+            }
             bulletNode.y = yPos;
             bulletNode.fills = [{ type: 'SOLID', color: hexToRgb(colors.bulletPointAndText) }];
             uniqueName = `TextNode-${textNodeCounter++}-${Date.now()}`;
             bulletNode.name = uniqueName;
             frame.appendChild(bulletNode);
-
-            // Create text node for the number
             const numberNode = figma.createText();
             await figma.loadFontAsync({ family: "Roxborough CF", style: "Bold" });
             numberNode.fontName = { family: "Roxborough CF", style: "Bold" };
@@ -189,29 +191,25 @@ async function createTextLayer(text, yPos, frame, isDirectlyAfterBullet = false,
             numberNode.fills = [{ type: 'SOLID', color: hexToRgb(colors.backgroundAndNumber) }];
             uniqueName = `TextNode-${textNodeCounter++}-${Date.now()}`;
             numberNode.name = uniqueName;
+            numberNode.textAlignHorizontal = textDirection === 'RTL' ? 'RIGHT' : 'LEFT';
             frame.appendChild(numberNode);
-
+           
             bulletNodeY = bulletNode.y;
             bulletNodeHeight = bulletNode.height;
-
-            // Adjust the X position for the rest of the text
-            xOffset += bulletNode.width + 15; // Space between bullet and text
+            xOffset += bulletNode.width + 15;
             isDirectlyAfterBullet = true;
             numberedTextMatch = true;
+           
             break;
         case 'insideText':
             await applyMixedStyles(textNode, text);
-            textNode.resize(width, textNode.height); // Adjust width
-
-            // Apply the 10-unit margin from bullet point only if directly after a bullet
+            textNode.resize(width, textNode.height);
             if (isDirectlyAfterBullet) {
                 margin = 5;
-                textNode.y = bulletNodeY + 20; // Adjust yPos for this specific case
-                // isDirectlyAfterBullet = false; // Reset the flag after use
+                textNode.y = bulletNodeY + 20;
+                textNode.textAlignHorizontal = textDirection === 'RTL' ? 'RIGHT' : 'LEFT';
                 frame.appendChild(textNode);
-                // Adjust yPos for next text layer, including margin from the adjusted position of mixed style text
                 yPos = textNode.y + textNode.height + margin;
-
                 textNodeProperties.push({
                     name: textNode.name,
                     x: textNode.x,
@@ -219,31 +217,19 @@ async function createTextLayer(text, yPos, frame, isDirectlyAfterBullet = false,
                     width: textNode.width,
                     height: textNode.height
                 });
-
                 return { yPos: yPos, textNodeProperties };
             }
-
             uniqueName = `TextNode-${textNodeCounter++}-${Date.now()}`;
             textNode.name = uniqueName;
+            textNode.textAlignHorizontal = textDirection === 'RTL' ? 'RIGHT' : 'LEFT';
             frame.appendChild(textNode);
-            // Adjust yPos for next text layer, including margin from the adjusted position of mixed style text
             yPos = textNode.y + textNode.height + margin;
             return { yPos: yPos };
-
-
-        // case 'unknown':
-        //     // Process text that might need bold processing but is not a main title
-        //     await figma.loadFontAsync(fontStyles.dmSansRegular);
-        //     textNode.fontName = fontStyles.dmSansRegular;
-        //     textNode.fontSize = 14;
-        //     textNode.fills = [{ type: 'SOLID', color: hexToRgb(colors.regularText) }];
-        //     break;
         default:
-
             await figma.loadFontAsync(fontStyles.dmSansRegular);
             if (isDirectlyAfterBullet) {
                 margin = 20;
-                textNode.y = bulletNodeY + 20; // Adjust yPos for this specific case
+                textNode.y = bulletNodeY + 20;
                 isDirectlyAfterBullet = false;
             }
             textNode.fontName = fontStyles.dmSansRegular;
@@ -251,51 +237,38 @@ async function createTextLayer(text, yPos, frame, isDirectlyAfterBullet = false,
             textNode.fills = [{ type: 'SOLID', color: hexToRgb(colors.regularText) }];
             break;
     }
-
     if (numberedTextMatch) {
- 
-       
-
         await figma.loadFontAsync(fontStyles.roxboroughBold);
         textNode.fontName = fontStyles.roxboroughBold;
         textNode.fontSize = 16;
         textNode.fills = [{ type: 'SOLID', color: hexToRgb(colors.bulletPointAndText) }];
-
         text = text.replace(/^\d+\.\s+/, '').replace(/\*\*(.*?)\*\*/g, '$1');
-
-
-        // Calculate vertical centering relative to bulletNode's position and height
-        await figma.loadFontAsync(textNode.fontName); // Ensure font is loaded to calculate height
+        await figma.loadFontAsync(textNode.fontName);
         textNode.characters = text;
-        const textNodeHeightEstimate = textNode.height; // Use an estimate or calculate based on font metrics
+        const textNodeHeightEstimate = textNode.height;
         textNode.y = bulletNodeY + (bulletNodeHeight / 2) - (textNodeHeightEstimate / 2);
-
         margin = 10;
     }
     textNode.x = xOffset;
-
+    if (textDirection === 'RTL' && numberedTextMatch) {
+        textNode.x = 0;
+    }
     textNode.characters = text;
-    // textNode.resize(486 - (xOffset - 55), textNode.height); // Adjust the width based on the xOffset
-    textNode.resize(width, textNode.height); // Use the provided width
-
+    textNode.resize(width, textNode.height);
     if (isTitle) {
-        await figma.loadFontAsync(textNode.fontName); // Ensure the font is loaded
-
-        let textHeight = textNode.height; // Measure the initial height
-        while (textHeight > 76 && textNode.fontSize > 8) { // Continue until height is <= 76 or fontSize is at a minimum
-            textNode.fontSize -= 1; // Decrease font size
-            await figma.loadFontAsync({ family: textNode.fontName.family, style: textNode.fontName.style }); // Ensure font is loaded after size change
-            textNode.resize(width, textNode.height); // Adjust the width to recalculate the height
-            textHeight = textNode.height; // Update the height for the loop condition
+        await figma.loadFontAsync(textNode.fontName);
+        let textHeight = textNode.height;
+        while (textHeight > 76 && textNode.fontSize > 8) {
+            textNode.fontSize -= 1;
+            await figma.loadFontAsync({ family: textNode.fontName.family, style: textNode.fontName.style });
+            textNode.resize(width, textNode.height);
+            textHeight = textNode.height;
         }
     }
-
-
     uniqueName = `TextNode-${textNodeCounter++}-${Date.now()}`;
     textNode.name = uniqueName;
+    textNode.textAlignHorizontal = textDirection === 'RTL' ? 'RIGHT' : 'LEFT';
     frame.appendChild(textNode);
-
-    // Capture properties of the created text node
     textNodeProperties.push({
         name: textNode.name,
         x: textNode.x,
@@ -303,96 +276,67 @@ async function createTextLayer(text, yPos, frame, isDirectlyAfterBullet = false,
         width: textNode.width,
         height: textNode.height
     });
-
-    // Calculate and return the new Y position for the next text node
     return { yPos: yPos + textNode.height + margin, textNodeProperties };
-
 }
-
-
-
- 
 
 async function applyMixedStyles(textNode, text) {
-    // Load the regular font first
-    await figma.loadFontAsync(fontStyles.dmSansRegular);
-    textNode.fontName = fontStyles.dmSansRegular;
-    textNode.fontSize = 14;
-    textNode.fills = [{ type: 'SOLID', color: hexToRgb(colors.mixedStylesText) }]; // Assuming you want the regular text color
+    const regularStyle = { font: fontStyles.dmSansRegular, size: 14, color: hexToRgb(colors.mixedStylesText) };
+    const boldStyle = { font: fontStyles.dmSansBold, size: 14, color: hexToRgb(colors.mixedStylesText) };
+    await figma.loadFontAsync(regularStyle.font);
+    textNode.fontName = regularStyle.font;
+    textNode.fontSize = regularStyle.size;
+    textNode.fills = [{ type: 'SOLID', color: regularStyle.color }];
 
-    // Calculate the number of characters to be removed
-    const removedCharsMatch = text.match(/^\s*[-]\s?/);
-    const removedCharsCount = removedCharsMatch ? removedCharsMatch[0].length : 0;
-
-    // Remove " - " at the start and "*" throughout the text for initial clean text
     let cleanText = text.replace(/^\s*-\s?|\*{1,2}/g, '');
-
-    
     textNode.characters = cleanText;
 
-    
-    let matchDouble;
-    const boldDoubleRegex = /\*\*(.+?)\*\*/g;
-    let adjustmentIndexDouble = 0; 
-    while ((matchDouble = boldDoubleRegex.exec(text)) !== null) {
-        let boldTextStart = matchDouble.index - adjustmentIndexDouble - removedCharsCount; // Adjust based on removed characters and previous adjustments
-        let boldTextEnd = boldTextStart + matchDouble[1].length;
-        await figma.loadFontAsync(fontStyles.dmSansBold);
-        textNode.setRangeFontName(boldTextStart, boldTextEnd, fontStyles.dmSansBold);
-        textNode.setRangeFontSize(boldTextStart, boldTextEnd, 14);
-        textNode.setRangeFills(boldTextStart, boldTextEnd, [{ type: 'SOLID', color: hexToRgb(colors.mixedStylesText) }]);
-        adjustmentIndexDouble += matchDouble[0].length - matchDouble[1].length; // Correctly adjust for the length of the bold markers
-    }
-    
-    let match;
-    const boldRegex = /\*([^\*]+)\*/g;
-    let adjustmentIndex = 0; 
-    while ((match = boldRegex.exec(text)) !== null) {
-        let boldTextStart = match.index - adjustmentIndex - removedCharsCount; // Adjust based on removed characters and previous adjustments
-        let boldTextEnd = boldTextStart + match[1].length;
-        await figma.loadFontAsync(fontStyles.dmSansBold);
-        textNode.setRangeFontName(boldTextStart, boldTextEnd, fontStyles.dmSansBold);
-        textNode.setRangeFontSize(boldTextStart, boldTextEnd, 14);
-        textNode.setRangeFills(boldTextStart, boldTextEnd, [{ type: 'SOLID', color: hexToRgb(colors.mixedStylesText) }]);
-        adjustmentIndex += match[0].length - match[1].length; // Correctly adjust for the length of the bold markers
-    }
+    const applyStyle = async (regex, style) => {
+        let match;
+        let adjustmentIndex = 0;
+        const removedCharsMatch = text.match(/^\s*[-]\s?/);
+        const removedCharsCount = removedCharsMatch ? removedCharsMatch[0].length : 0;
+        while ((match = regex.exec(text)) !== null) {
+            let start = match.index - adjustmentIndex - removedCharsCount;
+            let end = start + match[1].length;
+            await figma.loadFontAsync(style.font);
+            textNode.setRangeFontName(start, end, style.font);
+            textNode.setRangeFontSize(start, end, style.size);
+            textNode.setRangeFills(start, end, [{ type: 'SOLID', color: style.color }]);
+            adjustmentIndex += match[0].length - match[1].length;
+        }
+    };
+
+    await applyStyle(/\*\*(.+?)\*\*/g, boldStyle);
+    await applyStyle(/\*([^\*]+)\*/g, boldStyle);
 }
 
 
-async function createColumnTextLayers(texts, initialYPos, frame, columnWidths, columnXOffsets, styles) {
+
+async function createColumnTextLayers({texts, initialYPos, frame, columnWidths, columnXOffsets, styles}) {
     let yPos = initialYPos;
-    let maxTextHeight = 0; // Track the maximum height of text nodes
-    let textNodeProperties = []; // Array to store properties of each text node
-
-
+    let maxTextHeight = 0;
+    let textNodeProperties = [];
     for (let index = 0; index < texts.length; index++) {
         const text = texts[index];
         const style = styles[index] || "";
         const width = columnWidths[index];
         const xOffset = columnXOffsets[index];
-
         let fontToUse = (style === '**') ? fontStyles.roxboroughBold : fontStyles.dmSansRegular;
         let cleanText = (style === '**') ? text.replace(/\*\*/g, '') : text;
-
-        // Ensure the font is loaded for the text node you are about to create
         await figma.loadFontAsync(fontToUse);
-
         const textNode = figma.createText();
         textNode.x = xOffset;
         textNode.y = yPos;
-        textNode.resize(width, textNode.height); // Use specified width for the column
+        textNode.resize(width, textNode.height);
         textNode.fontName = fontToUse;
         textNode.characters = cleanText;
         textNode.fills = [{ type: 'SOLID', color: hexToRgb(style === '**' ? colors.highlightedText : colors.regularText) }];
-
+        textNode.textAlignHorizontal = textDirection === 'RTL' ? 'RIGHT' : 'LEFT';
         frame.appendChild(textNode);
-
-        // Wait for Figma to render the text node to calculate its height accurately
         await figma.loadFontAsync(textNode.fontName);
         if (textNode.height + 10 > maxTextHeight) {
-            maxTextHeight = textNode.height + 10; // Update if this text node is taller
+            maxTextHeight = textNode.height + 10;
         }
-        // Save each text node's properties
         textNodeProperties.push({
             x: textNode.x,
             y: textNode.y,
@@ -400,14 +344,9 @@ async function createColumnTextLayers(texts, initialYPos, frame, columnWidths, c
             height: textNode.height
         });
     }
-
-    // After both columns are created, update yPos using the maximum text height
     yPos += maxTextHeight;
-
-    return { yPos, textNodeProperties }; // Return the updated yPos for further use
+    return { yPos, textNodeProperties };
 }
-
- 
 ;// CONCATENATED MODULE: ./templates/createTableOfContents.js
  
  
@@ -505,7 +444,8 @@ function drawVerticalLine(yStart, yEnd, frame) {
 
 
 
-async function createBulletPointPage_One(texts, frame) {
+
+async function createBulletPointPage_One(texts, frame, textDirection) {
     await loadFonts(); // Ensure fonts are loaded before creating text layers
     let yPos = 65; // Starting Y position
     let isDirectlyAfterBullet = false;
@@ -513,7 +453,13 @@ async function createBulletPointPage_One(texts, frame) {
     let isBulletText;
     // Create text layers, assuming bullet point logic is incorporated in createTextLayer
     for (const text of texts) {
-        textLayerResult = await createTextLayer(text, yPos, frame, isDirectlyAfterBullet);
+        textLayerResult = await createTextLayer({
+            text: text,
+            yPos: yPos,
+            frame: frame,
+            textDirection: textDirection,
+            isDirectlyAfterBullet: isDirectlyAfterBullet
+        } );
 
         if (createBulletPointPage_One_identifyTextType(text) === 'bulletHeader') {
             isDirectlyAfterBullet = true;
@@ -528,7 +474,15 @@ async function createBulletPointPage_One(texts, frame) {
 
 }
 
-
+// function identifyTextType(text) {
+//     let type = null;
+//     regexPatterns.identifyTextType.forEach(({ pattern, type: patternType }) => {
+//         if (pattern.test(text)) {
+//             type = patternType;
+//         }
+//     });
+//     return type;
+// }
 function createBulletPointPage_One_identifyTextType(text) {
     const trimmedText = text.trim();
 
@@ -560,18 +514,13 @@ function createBulletPointPage_One_identifyTextType(text) {
     }else if (bulletHeaderRegex4.test(trimmedText)) { // Check for "**Example:**" format
         return 'bulletHeader';
     }
-    // // Bullet Headers: Numbered or bulleted items followed by bold text
-    // const bulletHeaderRegex = /^(\d+\.|-)\s*\*\*.*?\*\*:/;
-    // if (bulletHeaderRegex.test(trimmedText)) {
-    //     return 'bulletHeader';
-    // }
+ 
+    // regexPatterns.bulletHeader.forEach(({ pattern }) => {
+    //     if (pattern.test(trimmedText)) {
+    //         return 'bulletHeader';
+    //     }
+    // });
 
-    // Text under bullets or inside text that might need bold processing
-    // This includes text starting with "-", "*", or text that includes "**" anywhere
-    // const insideTextRegex = /^(-|\*)\s*\*\*|\*\*/;
-    // if (insideTextRegex.test(trimmedText) || trimmedText.includes('*')) {
-    //     return 'insideText';
-    // }
     const insideTextRegex = /^(-|\*)\s*\*\*|\*\*/;
     if (insideTextRegex.test(trimmedText) || trimmedText.includes('*')) {
         return 'insideText';
@@ -579,23 +528,12 @@ function createBulletPointPage_One_identifyTextType(text) {
     // Default to 'unknown' if none of the above categories match
     return 'unknown';
 }
-// export async function BulletPointPage_One(texts, frame) {
-//     await textGeneration.loadFonts(); // Ensure fonts are loaded before creating text layers
-//     let yPos = 65; // Starting Y position
-//     let isDirectlyAfterBullet = false;
-
-//     // Create text layers, assuming bullet point logic is incorporated in createTextLayer
-//     for (const text of texts) {
-//         yPos = await textGeneration.createTextLayer(text, yPos, frame, isDirectlyAfterBullet); // true indicates bullet style
-//         const isBulletText = text.match(/^\d+\.\s+/);
-//         isDirectlyAfterBullet = !!isBulletText;
-//     }
-// }
+ 
 ;// CONCATENATED MODULE: ./templates/createSimple_Title_Desc_Image.js
 
 
 
-async function createSimple_Title_Desc_Image(texts, frame) {
+async function createSimple_Title_Desc_Image(texts, frame, textDirection) {
     await loadFonts(); // Ensure fonts are loaded before creating text layers
     let yPos = 65; // Starting Y position
 
@@ -603,13 +541,25 @@ async function createSimple_Title_Desc_Image(texts, frame) {
 
     // Create the first text layer and update yPos based on its actual height
     if (texts.length > 0) {
-        textLayerResult = await createTextLayer(texts[0], yPos, frame);
+        textLayerResult = await createTextLayer({
+            text: texts[0],
+            yPos: yPos,
+            frame: frame,
+            textDirection: textDirection
+            // Any other parameters you wish to specify, otherwise defaults will be used
+        });
         yPos = textLayerResult.yPos; // Update yPos with the returned value
     }
 
     // Create the second text layer and update yPos similarly
     if (texts.length > 1) {
-        textLayerResult = await createTextLayer(texts[1], yPos, frame);
+        textLayerResult = await createTextLayer({
+            text: texts[1],
+            yPos: yPos,
+            frame: frame,
+            textDirection: textDirection
+            // Any other parameters you wish to specify, otherwise defaults will be used
+        });
         yPos = textLayerResult.yPos; // Update yPos with the returned value
     }
 
@@ -628,7 +578,7 @@ async function createSimple_Title_Desc_Image(texts, frame) {
 ;// CONCATENATED MODULE: ./templates/createSimple_Title_Desc.js
 
 
-async function createSimple_Title_Desc(texts, frame) {
+async function createSimple_Title_Desc(texts, frame, textDirection) {
     await loadFonts(); // Ensure fonts are loaded before creating text layers
     let yPos = 65; // Starting Y position
 
@@ -637,7 +587,13 @@ async function createSimple_Title_Desc(texts, frame) {
     // Create the first text layer and update yPos based on its actual height
     for (let i = 0; i < texts.length; i++) {
         
-        textLayerResult = await createTextLayer(texts[i], yPos, frame);
+        textLayerResult = await createTextLayer({
+            text: texts[i],
+            yPos: yPos,
+            frame: frame,
+            textDirection: textDirection
+            // Any other parameters you wish to specify, otherwise defaults will be used
+        });
         yPos = textLayerResult.yPos; 
     }
 
@@ -654,7 +610,7 @@ async function createSimple_Title_Desc(texts, frame) {
 
 
 
-async function createSimple_Image_Title_Desc(texts, frame) {
+async function createSimple_Image_Title_Desc(texts, frame, textDirection) {
     await loadFonts(); // Ensure fonts are loaded before creating text layers
     
     // Initially, calculate the space needed for the text layers from the bottom up
@@ -669,7 +625,13 @@ async function createSimple_Image_Title_Desc(texts, frame) {
     for (let i = 0; i < texts.length; i++) {
         let yPos = frame.height - bottomMargin - textLayerHeightTotal;
     
-        textLayerResult = await createTextLayer(texts[i], yPos, frame);
+        textLayerResult = await createTextLayer({
+            text: texts[i],
+            yPos: yPos,
+            frame: frame,
+            textDirection: textDirection
+            // Any other parameters you wish to specify, otherwise defaults will be used
+        });
     
         textLayerHeightTotal += textLayerResult.textNodeProperties[0].height + (i < texts.length - 1 ? 20 : 0);
     
@@ -719,7 +681,7 @@ function moveTextNodeByName(nodes, name, newYPosition) {
 
 
 
-async function createSimple_Desc_Image(texts, frame) {
+async function createSimple_Desc_Image(texts, frame, textDirection) {
     await loadFonts(); // Ensure fonts are loaded before creating text layers
     let yPos = 65; // Starting Y position
 
@@ -727,7 +689,13 @@ async function createSimple_Desc_Image(texts, frame) {
 
     // Create the first text layer and update yPos based on its actual height
     if (texts.length > 0) {
-        textLayerResult = await createTextLayer(texts[0], yPos, frame);
+        textLayerResult = await createTextLayer({
+            text: texts[0],
+            yPos: yPos,
+            frame: frame,
+            textDirection: textDirection
+            // Any other parameters you wish to specify, otherwise defaults will be used
+        });
         yPos = textLayerResult.yPos; // Update yPos with the returned value
     }
 
@@ -748,7 +716,7 @@ async function createSimple_Desc_Image(texts, frame) {
 
 
 
-async function createSimple_Image_Desc(texts, frame) {
+async function createSimple_Image_Desc(texts, frame, textDirection) {
     await loadFonts(); // Ensure fonts are loaded before creating text layers
     
     // Initially, calculate the space needed for the text layers from the bottom up
@@ -773,7 +741,13 @@ async function createSimple_Image_Desc(texts, frame) {
     if (texts.length > 0) {
         let yPos = frame.height - bottomMargin - textLayerHeightTotal;
     
-        textLayerResult = await createTextLayer(texts[0], yPos, frame);
+        textLayerResult = await createTextLayer({
+            text: texts[0],
+            yPos: yPos,
+            frame: frame,
+            textDirection: textDirection
+            // Any other parameters you wish to specify, otherwise defaults will be used
+        });
     
         textLayerHeightTotal += textLayerResult.textNodeProperties[0].height;
     
@@ -823,7 +797,7 @@ function createSimple_Image_Desc_moveTextNodeByName(nodes, name, newYPosition) {
 
 
 
-async function createSimple_Title_Desc_Image_ColumnStyle(texts, frame) {
+async function createSimple_Title_Desc_Image_ColumnStyle(texts, frame, textDirection) {
     await loadFonts(); // Ensure fonts are loaded before creating text layers
 
     let xPos = 55; // Starting X position
@@ -838,7 +812,13 @@ async function createSimple_Title_Desc_Image_ColumnStyle(texts, frame) {
 
     // Iterate through texts and create text layers at specified positions
     for (let i = 0; i < texts.length; i++) {
-        textLayerResult = await createTextLayer(texts[i], yPos, frame, false, layerWidth);
+        textLayerResult = await createTextLayer({
+            text: texts[i],
+            yPos: yPos,
+            frame: frame,
+            textDirection: textDirection
+            // Any other parameters you wish to specify, otherwise defaults will be used
+        } );
         // No need to update yPos here since we're stacking horizontally
         // Update xPos for the next layer, including the margin
         xPos += layerWidth + marginBetweenLayers;
@@ -873,12 +853,7 @@ async function createPagePlaceholder(texts, frame) {
     let placeholderWidth = frame.width - (margin * 2); // Width is frame width minus margins on both sides
     let placeholderYPos = margin; // Start Y position at the top margin
     let placeholderHeight = frame.height - (margin * 2); // Height is frame height minus top and bottom margins
-
-    // Log the calculated values to debug
-console.log(`Width: ${frame.width}, Placeholder Width: ${placeholderWidth}`);
-console.log(`Height: ${frame.height}, Placeholder Height: ${placeholderHeight}`);
-
-
+ 
     // Create a placeholder within the frame with specified margins
     createImagePlaceholder(frame, placeholderYPos, placeholderWidth, placeholderHeight);
 }
@@ -887,14 +862,22 @@ console.log(`Height: ${frame.height}, Placeholder Height: ${placeholderHeight}`)
 
 
 
-async function createTwoColumn_One(texts, frame) {
+async function createTwoColumn_One(texts, frame, textDirection) {
     await loadFonts(); // Ensure fonts are loaded before creating text layers
     
     let yPos = 65; // Starting Y position for the title
     let textLayerResult;
     // Create the title with bold style
     if (texts.length > 0) {
-        textLayerResult = await createTextLayer(`**${texts[0]}**`, yPos, frame, false, frame.width - 110, "**");
+        textLayerResult = await createTextLayer({
+            text: `**${texts[0]}**`,
+            yPos: yPos,
+            frame: frame,
+            width: frame.width - 110,
+            textDirection: textDirection,
+            style:  "**"
+        });
+        
         yPos = textLayerResult.yPos ; // Adjust space after the title
     }
     let columnCreationResult;
@@ -904,8 +887,16 @@ async function createTwoColumn_One(texts, frame) {
         const columnXOffsets = [55, 340]; // X offset for the second column assumes a 55 margin and a 45 margin between columns
         const styles = ["", ""]; // No specific styles for these texts
         
-        // Call createColumnTextLayers for the second and third lines
-        columnCreationResult = await createColumnTextLayers([texts[1], texts[2]], yPos, frame, columnWidths, columnXOffsets, styles);
+        
+ 
+        columnCreationResult = await createColumnTextLayers({
+            texts: [texts[1], texts[2]],
+            initialYPos: yPos,
+            frame: frame,
+            columnWidths: columnWidths,
+            columnXOffsets: columnXOffsets,
+            styles: styles
+        });
         yPos = columnCreationResult.yPos; // Update yPos with the returned value
 
     }
@@ -923,14 +914,22 @@ async function createTwoColumn_One(texts, frame) {
 
 
 
-async function createTwoColumn_Two(texts, frame) {
+async function createTwoColumn_Two(texts, frame, textDirection) {
     await loadFonts(); // Ensure fonts are loaded before creating text layers
     
     let yPos = 65; // Starting Y position for the title
     let textLayerResult;
     // Create the title with bold style
     if (texts.length > 0) {
-        textLayerResult = await createTextLayer(`**${texts[0]}**`, yPos, frame, false, frame.width - 110, "**");
+        textLayerResult = await createTextLayer({
+            text: `**${texts[0]}**`,
+            yPos: yPos,
+            frame: frame,
+            isDirectlyAfterBullet: false,
+            width: frame.width - 110,
+            textDirection: textDirection,
+            style:  "**"
+        });
         yPos = textLayerResult.yPos ; // Adjust space after the title
     }
     let columnCreationResult;
@@ -941,7 +940,14 @@ async function createTwoColumn_Two(texts, frame) {
         const styles = ["", ""]; // No specific styles for these texts
         
         // Call createColumnTextLayers for the second and third lines
-        columnCreationResult = await createColumnTextLayers([texts[1], texts[2]], yPos, frame, columnWidths, columnXOffsets, styles);
+        columnCreationResult = await createColumnTextLayers({
+            texts: [texts[1], texts[2]],
+            initialYPos: yPos,
+            frame: frame,
+            columnWidths: columnWidths,
+            columnXOffsets: columnXOffsets,
+            styles: styles
+        });
         yPos = columnCreationResult.yPos; // Update yPos with the returned value
     }
 
@@ -976,20 +982,36 @@ async function createTwoColumn_Two(texts, frame) {
 
 
 
-async function createTwoColumn_Three(texts, frame) {
+async function createTwoColumn_Three(texts, frame, textDirection) {
     await loadFonts(); // Ensure fonts are loaded before creating text layers
     
     let yPos = 65; // Starting Y position for the title
     let textLayerResult;
     // Text Layer 1 with ** style
     if (texts.length > 0) {
-        textLayerResult = await createTextLayer(`**${texts[0]}**`, yPos, frame, true, frame.width - 110, "**");
+        textLayerResult = await createTextLayer({
+            text: `**${texts[0]}**`,
+            yPos: yPos,
+            frame: frame,
+            isDirectlyAfterBullet: true,
+            width: frame.width - 110,
+            textDirection: textDirection,
+            style:  "**"
+        });
         yPos = textLayerResult.yPos; // Adjust space after the title
     }
 
     // Text Layer 2 (regular text)
     if (texts.length > 1) {
-        textLayerResult = await createTextLayer(texts[1], yPos, frame, false, frame.width - 110);
+        textLayerResult = await createTextLayer({
+            text: texts[1],
+            yPos: yPos,
+            frame: frame,
+            isDirectlyAfterBullet: false,
+            width: frame.width - 110,
+            textDirection: textDirection,
+            style:  "**"
+        });
         yPos = textLayerResult.yPos + 10; // Space before potentially adding a placeholder
     }
 
@@ -1005,7 +1027,15 @@ async function createTwoColumn_Three(texts, frame) {
 
     // Text Layer 3 with ** style
     if (texts.length > 3) {
-        textLayerResult = await createTextLayer(`**${texts[2]}**`, yPos, frame, true, frame.width - 110, "**");
+        textLayerResult = await createTextLayer({
+            text: `**${texts[2]}**`,
+            yPos: yPos,
+            frame: frame,
+            isDirectlyAfterBullet: true,
+            width: frame.width - 110,
+            textDirection: textDirection,
+            style:  "**"
+        });
         yPos = textLayerResult.yPos; // Adjust space after the text
     }
 
@@ -1016,18 +1046,19 @@ async function createTwoColumn_Three(texts, frame) {
         const styles = ["", ""]; // Assuming these texts don't have special styles
 
         // Call createColumnTextLayers for the two column texts
-        let columnCreationResult = await createColumnTextLayers([texts[3], texts[4]], yPos, frame, columnWidths, columnXOffsets, styles);
+        let columnCreationResult = await createColumnTextLayers({
+            texts: [texts[3], texts[4]],
+            initialYPos: yPos,
+            frame: frame,
+            columnWidths: columnWidths,
+            columnXOffsets: columnXOffsets,
+            styles: styles
+        });
         yPos = columnCreationResult.yPos; // Update yPos with the returned value
     }
 
     let placeholderHeight = frame.height - yPos - 55; // Adjust based on yPos and bottom margin
-
-    
-    // if (placeholderHeight >= 150) {
-    //     // If the height is 150px or more, create the placeholder
-    //     placeholder = createImagePlaceholder(frame, yPos + 20, frame.width - 110, Math.max(150, placeholderHeight)); // Ensure a minimum height
-    //     yPos += placeholder.height + 20; // Adjust yPos for the placeholder with a 20px margin
-    // }
+ 
 
     // Adjusting text layers positions after placeholder
     if (columnCreationResult) {
@@ -1048,14 +1079,22 @@ async function createTwoColumn_Three(texts, frame) {
 
 
 
-async function createTwoColumn_Four(texts, frame) {
+async function createTwoColumn_Four(texts, frame, textDirection) {
     await loadFonts(); // Ensure fonts are loaded before creating text layers
     
     let yPos = 65; // Starting Y position for the title text
     let textLayerResult;
     // ** Style Text Layer (Title)
     if (texts.length > 0) {
-        textLayerResult = await createTextLayer(`**${texts[0]}**`, yPos, frame, true, frame.width - 110, "**");
+        textLayerResult = await createTextLayer({
+            text: `**${texts[0]}**`,
+            yPos: yPos,
+            frame: frame,
+            isDirectlyAfterBullet: true,
+            width: frame.width - 110,
+            textDirection: textDirection,
+            style:  "**"
+        });
         yPos = textLayerResult.yPos ; // Adjust space after the title for the divider or next content
     }
 
@@ -1076,7 +1115,14 @@ async function createTwoColumn_Four(texts, frame) {
         
         // Assuming texts[1] and texts[2] contain the content for the two columns
         // This call might need adjustment based on how your text generation functions are set up
-        await createColumnTextLayers([texts[1], texts[2]], yPos, frame, columnWidths, columnXOffsets, styles);
+        await createColumnTextLayers({
+            texts: [texts[1], texts[2]],
+            initialYPos: yPos,
+            frame: frame,
+            columnWidths: columnWidths,
+            columnXOffsets: columnXOffsets,
+            styles: styles
+        });
     }
 
     // Further adjustments or text layers can be added here...
@@ -1085,7 +1131,7 @@ async function createTwoColumn_Four(texts, frame) {
 
 
 
-async function createTwoColumn_Five(texts, frame) {
+async function createTwoColumn_Five(texts, frame, textDirection) {
     await loadFonts(); // Ensure all necessary fonts are loaded
 
     // Initial setup for title and columns
@@ -1095,7 +1141,14 @@ async function createTwoColumn_Five(texts, frame) {
     // Create the title with bold style
     if (texts.length > 0) {
         // Title
-        textLayerResult = await createTextLayer(`**${texts[0]}**`, yPos, frame, false, titleWidth, "**");
+        textLayerResult = await createTextLayer({
+            text: `**${texts[0]}**`,
+            yPos: yPos,
+            frame: frame,
+            width: titleWidth,
+            textDirection: textDirection,
+            style:  "**"
+        });
         yPos = textLayerResult.yPos; // Space after the title before columns start
     }
 
@@ -1109,10 +1162,29 @@ async function createTwoColumn_Five(texts, frame) {
     if (texts.length >= 3) {
         // Create columns for the second and third lines of text
         // Column 1
-        textLayerResult = await createTextLayer(texts[1], yPos, frame, false, columnWidth, "", column1XOffset);
+        textLayerResult = await createTextLayer({
+            text: texts[1],
+            yPos: yPos,
+            frame: frame,
+            isDirectlyAfterBullet: false,
+            width: columnWidth,
+            textDirection: textDirection,
+            style:  "",
+            customXOffset: column1XOffset
+        });
+        
         yPos = textLayerResult.yPos; 
         // Column 2, yPos not updated because it should start at the same Y as column 1
-        await createTextLayer(texts[2], yPos, frame, false, columnWidth, "", column2XOffset);
+        await createTextLayer({
+            text: texts[2],
+            yPos: yPos,
+            frame: frame,
+            isDirectlyAfterBullet: false,
+            width: columnWidth,
+            textDirection: textDirection,
+            style:  "",
+            customXOffset: column2XOffset
+        });
 
         // After columns, adjust yPos for the placeholder. Assuming a fixed height for text layers, adjust if necessary
        // Assuming 251px is the height of columns + 20px space after columns
@@ -1150,283 +1222,123 @@ async function createTwoColumn_Five(texts, frame) {
 
 
 ;// CONCATENATED MODULE: ./frameGeneration.js
- 
 
 
 
 
 
+async function createFramesAndAddText(texts, textDirection) {
+    await figma.loadAllPagesAsync();
+    await loadFonts();
+    let xOffset = 0, pageNumber = 1, maxRight = 0;
 
-async function createFramesAndAddText(texts, selectedType) {
-    await loadFonts(); // Ensure all necessary fonts are loaded
-    let xOffset = 0;
-    let pageNumber = 1;
-    let maxRight = 0;
-
-    
-     // Find the most rightward frame and the highest page number among existing frames
-     figma.currentPage.children.forEach(node => {
+    figma.currentPage.children.forEach(node => {
         if (node.type === "FRAME") {
-            const nodeRightEdge = node.x + node.width;
-            if (nodeRightEdge > maxRight) {
-                maxRight = nodeRightEdge; // Update the most rightward position
-            }
-            // Check if the frame name matches "Page X" format and update pageNumber accordingly
+            maxRight = Math.max(maxRight, node.x + node.width);
             const match = node.name.match(/^Page (\d+)$/);
-            if (match) {
-                const currentPageNumber = parseInt(match[1], 10);
-                if (currentPageNumber >= pageNumber) {
-                    pageNumber = currentPageNumber + 1; // Continue numbering from the last found page number
-                }
-            }
+            if (match) pageNumber = Math.max(pageNumber, parseInt(match[1], 10) + 1);
         }
     });
 
-    let textGroups = [];
-    let sliceSizes = [];
-    xOffset = maxRight + 50; // Add some space between the existing frames and new ones
+    xOffset = maxRight + 50;
+    let { textGroups, templatesToUse } = processTextsForPagesAndTemplates(texts);
 
-    let templatesToUse;
-    
-
-    switch (selectedType) {
-        case 'bulletPoint2':
-            // Define specific slices and templates for option 1
-            textGroups = [texts
-            ]; 
-            templatesToUse = [createTableOfContents ];
-            break;
-        
-        case 'introduction':
-            // Define specific slices and templates for option 2
-            textGroups = [null, 
-                texts.slice(0, 2),
-                texts.slice(2, 5),
-                texts.slice(0, 5),
-                texts.slice(0, 3),
-                texts.slice(0, 3),
-            ];
-            // templatesToUse = [PagePlaceholder, createTwoColumn_One, createTwoColumn_Two,createTwoColumn_Three];
-            templatesToUse = [createPagePlaceholder, createSimple_Title_Desc_Image_ColumnStyle,
-                createSimple_Image_Desc, createTwoColumn_Four,createTwoColumn_Five];
-
-            break;
-
-        case 'ai_automation':
-            ({ textGroups, templatesToUse  } = processTextsForPagesAndTemplates(texts));
-            
-            // return;
-         
-
-            break;
-        // Add more cases here for other template choices
-    
-        default:
-            // Handle an unexpected or default case if necessary
-            console.log("No valid template choice selected.");
-            // Optionally set default textGroups and framesFunctions
-            break;
+    for (let i = 0; i < textGroups.length; i++) {
+        const frame = figma.createFrame();
+        frame.resize(595, 842);
+        frame.x = xOffset;
+        frame.y = 0;
+        frame.fills = [{ type: 'SOLID', color: hexToRgb(colors.backgroundAndNumber) }];
+        frame.name = `Page ${pageNumber}`;
+        const group = textGroups[i];
+        if (group !== null) await templatesToUse[i](group, frame, textDirection);
+        xOffset += 595 + 50;
+        pageNumber++;
     }
-     
-    // Create frames based on the dynamically generated text groups
-for (let i = 0; i < textGroups.length; i++) { // Iterate based on textGroups length
-    
-    const frame = figma.createFrame();
-    frame.resize(595, 842);
-    frame.x = xOffset;
-    frame.y = 0; // Adjust this as needed to align with your design requirements
-    frame.fills = [{ type: 'SOLID', color: hexToRgb(colors.backgroundAndNumber) }];
-
-    // Set the frame name to "Page X" where X is the current page number
-    frame.name = `Page ${pageNumber}`;
-
-    const group = textGroups[i]; // Get the current group from textGroups
-    if (group === null) {
-        // If the current group is null, create a PagePlaceholder
-        createImagePlaceholder(frame, 55, frame.width - 110, frame.height - 110);
-    } else {
-        // Otherwise, use the corresponding template for non-null groups
-        // Ensure [i] can handle the group, assuming templatesToUse aligns with non-null textGroups
-        await templatesToUse[i](group, frame);
-    }
-
-    xOffset += frame.width + 50; // Move xOffset to the right for the next frame
-    pageNumber++; // Increment the page number for the next frame
+    if (templatesToUse.length > 0) figma.notify("Text layers and frames created successfully.");
 }
-
-    if (templatesToUse.length > 0){
-    figma.notify("Text layers and frames created successfully.");
-}
-
-}
-
- 
 
 function processTextsForPagesAndTemplates(texts) {
- 
     const allTemplates = [
-        { templateName: createTableOfContents, line: 12, use: 'toc' },
-        { templateName: createSimple_Title_Desc_Image_ColumnStyle, line: 2, use: 'intro' },
-        { templateName: createSimple_Title_Desc, line: 6, use: 'simpletext' },
-        { templateName: createSimple_Image_Desc, line: 1, use: 'image-desc' },
-        { templateName: createBulletPointPage_One, line: 11, use: 'bullet' },
-        { templateName: createTwoColumn_One, line: 3, use: 'two-column-1' },
-        { templateName: createTwoColumn_Two, line: 3, use: 'two-column-2' },
-        { templateName: createTwoColumn_Three, line: 5, use: 'two-column-3' },
-        { templateName: createTwoColumn_Four, line: 3, use: 'two-column-4' },
-        { templateName: createTwoColumn_Five, line: 3, use: 'two-column-5' },
-        { templateName: createSimple_Desc_Image, line: 1, use: 'image' },
-        { templateName: createSimple_Title_Desc_Image, line: 2, use: 'overview' },
-        { templateName: createSimple_Image_Title_Desc, line: 2, use: 'highlight' },
-        { templateName: createPagePlaceholder, line: 0, use: 'placeholder' },
-      ];
-    
-      let templatesToUse = [];
-      let cleanedTexts = [];
-      let sliceSizes = [];
-      let currentPageLines = 0;
-      let markerFound = false;
-  
-      texts.forEach((text, index) => {
+        { template: createTableOfContents, use: 'toc' },
+        { template: createSimple_Title_Desc_Image_ColumnStyle, use: 'intro' },
+        { template: createSimple_Title_Desc, use: 'simpletext' },
+        { template: createSimple_Image_Desc, use: 'image-desc' },
+        { template: createBulletPointPage_One, use: 'bullet' },
+        { template: createTwoColumn_One, use: 'two-column-1' },
+        { template: createTwoColumn_Two, use: 'two-column-2' },
+        { template: createTwoColumn_Three, use: 'two-column-3' },
+        { template: createTwoColumn_Four, use: 'two-column-4' },
+        { template: createTwoColumn_Five, use: 'two-column-5' },
+        { template: createSimple_Desc_Image, use: 'image' },
+        { template: createSimple_Title_Desc_Image, use: 'overview' },
+        { template: createSimple_Image_Title_Desc, use: 'highlight' },
+        { template: createPagePlaceholder, use: 'placeholder' },
+    ];
+
+    let templatesToUse = [], cleanedTexts = [], sliceSizes = [], currentPageLines = 0, markerFound = false;
+
+    texts.forEach(text => {
         const markerMatch = text.match(/^#>page-(.*?)<#$/);
         if (markerMatch) {
-            const pageType = markerMatch[1].trim(); // Trim any whitespace
-    
-            if (markerFound) {
-                sliceSizes.push(currentPageLines);
-                currentPageLines = 0;
-            } else {
-                markerFound = true;
-            }
-    
-            // Adjust comparison for case sensitivity and whitespace
-            const templateMatch = allTemplates.find(template => template.use.trim().toLowerCase() === pageType.toLowerCase());
-             
-            if (templateMatch) {
-                templatesToUse.push(templateMatch.templateName);
-            } else {
-                console.error("No matching template found for page type:", pageType);
-            }
+            if (markerFound) sliceSizes.push(currentPageLines);
+            else markerFound = true;
+            currentPageLines = 0;
+            const pageType = markerMatch[1].trim().toLowerCase();
+            const templateMatch = allTemplates.find(t => t.use === pageType);
+            if (templateMatch) templatesToUse.push(templateMatch.template);
         } else if (markerFound) {
             cleanedTexts.push(text);
             currentPageLines++;
         }
     });
-    
-      // Finalize the last page if any texts were found after the last marker
-      if (currentPageLines > 0) {
-          sliceSizes.push(currentPageLines);
-      }
-  
-      // Generate text groups based on sliceSizes
-      const textGroups = generateTextGroups(cleanedTexts, sliceSizes);
-  
-      return { textGroups, templatesToUse };
-  }
+
+    if (currentPageLines > 0) sliceSizes.push(currentPageLines);
+    let textGroups = generateTextGroups(cleanedTexts, sliceSizes);
+    return { textGroups, templatesToUse };
+}
 
 function generateTextGroups(cleanedTexts, sliceSizes) {
-    let groups = [];
-    let startIndex = 0;
-
+    let groups = [], startIndex = 0;
     sliceSizes.forEach(size => {
-        const group = cleanedTexts.slice(startIndex, startIndex + size);
-        groups.push(group);
+        groups.push(cleanedTexts.slice(startIndex, startIndex + size));
         startIndex += size;
     });
-
     return groups;
 }
 
-
-function validateTextInputs(texts) {
-    // Check if texts is not empty and is a string
-    if (typeof texts !== 'string' || texts.trim().length === 0) {
-        throw new Error('Text input must be a non-empty string.');
-    }
-
-    // Check for the presence of at least one page marker
-    const hasPageMarker = /#>page-(.*?)<#/.test(texts);
-    if (!hasPageMarker) {
-        throw new Error('No page markers found in text input.');
-    }
-
-    // Optionally, validate that each marker corresponds to a known template
-    const markers = texts.match(/#>page-(.*?)<#/g) || [];
-    markers.forEach(marker => {
-        const type = marker.match(/#>page-(.*?)<#/)[1];
-        if (!allTemplates.some(t => t.use === type)) {
-            throw new Error(`Unknown page type "${type}" found in text input.`);
-        }
-    });
-
-    // If all checks pass, input is considered valid
-    return true;
-}
-
-
-function createImagePlaceholder(frame, startY ,width, height, xPos=55) {
+function createImagePlaceholder(frame, startY, width, height, xPos = 55) {
     const placeholder = figma.createRectangle();
     placeholder.resize(width, height);
     placeholder.y = startY;
-    placeholder.x = xPos; // Set x position based on the current xPos value
+    placeholder.x = xPos;
     placeholder.fills = [{ type: 'SOLID', color: hexToRgb(colors.greyPlaceHolder) }];
     placeholder.cornerRadius = 25;
     frame.appendChild(placeholder);
-    return placeholder; 
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// title: Pages that prominently feature a title, possibly with accompanying text or image.
-// bullet: Pages designed for bullet points or lists.
-// image: Pages with a focus on imagery, possibly with a small amount of text.
-// text: Pages that are text-heavy, such as full paragraphs or sections of text.
-// intro: Templates designed for introductions or opening pages.
-// overview: Pages that provide an overview or summary of a topic.
-// conclusion: Templates used for concluding remarks or summaries.
-// two-column: Pages that use a two-column layout for text, images, or a combination of both.
-// highlight: Templates that are used to highlight certain information, such as key points or quotes.
 ;// CONCATENATED MODULE: ./code.js
-
 // code.js 
 
 
 
-// Adjust the size when showing the UI
-figma.showUI(__html__ );
 
+figma.showUI(__html__);
 
 figma.ui.onmessage = async (msg) => {
-  
-  if (msg.type === 'resize-ui') {
-    const newHeight = msg.height;
-        figma.ui.resize(600, newHeight);
-  }
-  if (msg.type === 'create-text-layers') {
-   
-      const texts = msg.text.split('\n').filter(line => line.trim() !== '');
-      // const texts = msg.text.split('\n');
-      // Use msg.templateChoice to match the updated UI logic
-      await createFramesAndAddText(texts, msg.selectedType);
-  }
-  if (msg.type === 'notify') {
-    figma.notify(msg.message);}
+    switch (msg.type) {
+        case 'resize-ui':
+            figma.ui.resize(constants.uiWidth, msg.height);
+            break;
+        case 'create-text-layers':
+            const texts = msg.text.split('\n').filter(line => line.trim() !== '');
+            await createFramesAndAddText(texts, msg.textDirection);
+            break;
+        case 'notify':
+            figma.notify(msg.message);
+            break;
+    }
 };
-
 
 /******/ })()
 ;

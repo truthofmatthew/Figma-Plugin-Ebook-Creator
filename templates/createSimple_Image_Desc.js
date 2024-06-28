@@ -1,7 +1,7 @@
 import * as textGeneration from '../textGeneration.js';
 import { createImagePlaceholder } from '../frameGeneration.js';
 
-export async function createSimple_Image_Desc(texts, frame) {
+export async function createSimple_Image_Desc(texts, frame, textDirection) {
     await textGeneration.loadFonts(); // Ensure fonts are loaded before creating text layers
     
     // Initially, calculate the space needed for the text layers from the bottom up
@@ -26,7 +26,13 @@ export async function createSimple_Image_Desc(texts, frame) {
     if (texts.length > 0) {
         let yPos = frame.height - bottomMargin - textLayerHeightTotal;
     
-        textLayerResult = await textGeneration.createTextLayer(texts[0], yPos, frame);
+        textLayerResult = await textGeneration.createTextLayer({
+            text: texts[0],
+            yPos: yPos,
+            frame: frame,
+            textDirection: textDirection
+            // Any other parameters you wish to specify, otherwise defaults will be used
+        });
     
         textLayerHeightTotal += textLayerResult.textNodeProperties[0].height;
     

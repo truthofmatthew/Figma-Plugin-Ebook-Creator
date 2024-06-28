@@ -1,7 +1,8 @@
 import * as textGeneration from '../textGeneration.js';
 import { createImagePlaceholder } from '../frameGeneration.js';
+import { regexPatterns } from '../constants.js';
 
-export async function createBulletPointPage_One(texts, frame) {
+export async function createBulletPointPage_One(texts, frame, textDirection) {
     await textGeneration.loadFonts(); // Ensure fonts are loaded before creating text layers
     let yPos = 65; // Starting Y position
     let isDirectlyAfterBullet = false;
@@ -9,7 +10,13 @@ export async function createBulletPointPage_One(texts, frame) {
     let isBulletText;
     // Create text layers, assuming bullet point logic is incorporated in createTextLayer
     for (const text of texts) {
-        textLayerResult = await textGeneration.createTextLayer(text, yPos, frame, isDirectlyAfterBullet);
+        textLayerResult = await textGeneration.createTextLayer({
+            text: text,
+            yPos: yPos,
+            frame: frame,
+            textDirection: textDirection,
+            isDirectlyAfterBullet: isDirectlyAfterBullet
+        } );
 
         if (identifyTextType(text) === 'bulletHeader') {
             isDirectlyAfterBullet = true;
@@ -24,7 +31,15 @@ export async function createBulletPointPage_One(texts, frame) {
 
 }
 
-
+// function identifyTextType(text) {
+//     let type = null;
+//     regexPatterns.identifyTextType.forEach(({ pattern, type: patternType }) => {
+//         if (pattern.test(text)) {
+//             type = patternType;
+//         }
+//     });
+//     return type;
+// }
 function identifyTextType(text) {
     const trimmedText = text.trim();
 
@@ -56,18 +71,13 @@ function identifyTextType(text) {
     }else if (bulletHeaderRegex4.test(trimmedText)) { // Check for "**Example:**" format
         return 'bulletHeader';
     }
-    // // Bullet Headers: Numbered or bulleted items followed by bold text
-    // const bulletHeaderRegex = /^(\d+\.|-)\s*\*\*.*?\*\*:/;
-    // if (bulletHeaderRegex.test(trimmedText)) {
-    //     return 'bulletHeader';
-    // }
+ 
+    // regexPatterns.bulletHeader.forEach(({ pattern }) => {
+    //     if (pattern.test(trimmedText)) {
+    //         return 'bulletHeader';
+    //     }
+    // });
 
-    // Text under bullets or inside text that might need bold processing
-    // This includes text starting with "-", "*", or text that includes "**" anywhere
-    // const insideTextRegex = /^(-|\*)\s*\*\*|\*\*/;
-    // if (insideTextRegex.test(trimmedText) || trimmedText.includes('*')) {
-    //     return 'insideText';
-    // }
     const insideTextRegex = /^(-|\*)\s*\*\*|\*\*/;
     if (insideTextRegex.test(trimmedText) || trimmedText.includes('*')) {
         return 'insideText';
@@ -75,15 +85,4 @@ function identifyTextType(text) {
     // Default to 'unknown' if none of the above categories match
     return 'unknown';
 }
-// export async function BulletPointPage_One(texts, frame) {
-//     await textGeneration.loadFonts(); // Ensure fonts are loaded before creating text layers
-//     let yPos = 65; // Starting Y position
-//     let isDirectlyAfterBullet = false;
-
-//     // Create text layers, assuming bullet point logic is incorporated in createTextLayer
-//     for (const text of texts) {
-//         yPos = await textGeneration.createTextLayer(text, yPos, frame, isDirectlyAfterBullet); // true indicates bullet style
-//         const isBulletText = text.match(/^\d+\.\s+/);
-//         isDirectlyAfterBullet = !!isBulletText;
-//     }
-// }
+ 
