@@ -5,9 +5,17 @@ import { hexToRgb } from './utilities.js';
 import { regexPatterns } from './constants.js';
 
 
+// Roxborough CF and DM Sans are not installed for most users; fall back to Inter, which ships with Figma.
 export async function loadFonts() {
     const fontsToLoad = [fontStyles.roxboroughBold, fontStyles.dmSansBold, fontStyles.dmSansRegular];
-    await Promise.all(fontsToLoad.map(font => figma.loadFontAsync(font)));
+    await Promise.all(fontsToLoad.map(async font => {
+        try {
+            await figma.loadFontAsync(font);
+        } catch (e) {
+            font.family = 'Inter';
+            await figma.loadFontAsync(font);
+        }
+    }));
 }
 
 let textNodeCounter = 0;
@@ -124,8 +132,7 @@ export async function createTextLayer({text, yPos, frame, isDirectlyAfterBullet 
             bulletNode.name = uniqueName;
             frame.appendChild(bulletNode);
             const numberNode = figma.createText();
-            await figma.loadFontAsync({ family: "Roxborough CF", style: "Bold" });
-            numberNode.fontName = { family: "Roxborough CF", style: "Bold" };
+            numberNode.fontName = fontStyles.roxboroughBold;
             numberNode.fontSize = 32;
             numberNode.characters = number;
             numberNode.x = bulletNode.x + (bulletNode.width / 2) - (numberNode.width / 2);
@@ -254,7 +261,7 @@ export async function applyMixedStyles(textNode, text) {
 
 
 
-export async function createColumnTextLayers({texts, initialYPos, frame, columnWidths, columnXOffsets, styles}) {
+export async function createColumnTextLayers({texts, initialYPos, frame, columnWidths, columnXOffsets, styles, textDirection = 'LTR'}) {
     let yPos = initialYPos;
     let maxTextHeight = 0;
     let textNodeProperties = [];

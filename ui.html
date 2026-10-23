@@ -97,8 +97,8 @@
 
   <div class="footer" style="font-size: 12px;   margin-top: 20px;">
     <div style="margin-bottom: 5px;">🐾 Made with ❤️ by <a href="https://www.linkedin.com/in/mtkarimi/" target="_blank" style="color: #0077B5;">Mathew</a>Let's connect!</div>
-    <div style="margin-bottom: 5px;">🌟 Check out the <a href="https://github.com/mtkarimi/EbookFrameCreator/" target="_blank" style="color: #333;">code on GitHub</a>and star it if you like!</div>
-    <div>🚀 Version 0.1.6</div>
+    <div style="margin-bottom: 5px;">🌟 Check out the <a href="https://github.com/truthofmatthew/Figma-Plugin-Ebook-Creator" target="_blank" style="color: #333;">code on GitHub</a>and star it if you like!</div>
+    <div>🚀 Version 0.2.0</div>
   </div>
   
   
@@ -131,7 +131,6 @@ Please make sure to use this specified structure: [
 
 
 </body>
-<script type="module" src="dist/main.js"></script>
 <!-- <script type="module" src="uiHandlers.js"></script> -->
 <!-- <script type="module" src="dist/ui.js"></script> -->
  <script>
@@ -243,9 +242,7 @@ document.addEventListener('DOMContentLoaded', function () {
     img.addEventListener('click', () => insertTextAtCursor(img.alt + '\n'));
     imagesContainer.appendChild(img);
   });
-
- 
-    parent.postMessage({ pluginMessage: { type: 'resize-ui', height: requiredHeight } }, '*');
+    resizePluginUI();
 
 
 

@@ -45,7 +45,8 @@ export async function createTwoColumn_Four(texts, frame, textDirection) {
             frame: frame,
             columnWidths: columnWidths,
             columnXOffsets: columnXOffsets,
-            styles: styles
+            styles: styles,
+            textDirection: textDirection
         });
     }
 

@@ -33,7 +33,8 @@ export async function createTwoColumn_Two(texts, frame, textDirection) {
             frame: frame,
             columnWidths: columnWidths,
             columnXOffsets: columnXOffsets,
-            styles: styles
+            styles: styles,
+            textDirection: textDirection
         });
         yPos = columnCreationResult.yPos; // Update yPos with the returned value
     }

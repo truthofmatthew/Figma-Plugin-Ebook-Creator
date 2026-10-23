@@ -21,7 +21,6 @@ import {
 } from './templates';
 
 export async function createFramesAndAddText(texts, textDirection) {
-    await figma.loadAllPagesAsync();
     await loadFonts();
     let xOffset = 0, pageNumber = 1, maxRight = 0;
 
@@ -34,7 +33,12 @@ export async function createFramesAndAddText(texts, textDirection) {
     });
 
     xOffset = maxRight + 50;
-    let { textGroups, templatesToUse } = processTextsForPagesAndTemplates(texts);
+    let { textGroups, templatesToUse, error } = processTextsForPagesAndTemplates(texts);
+    if (error) {
+        figma.notify(error, { error: true });
+        return;
+    }
+    const created = [];
 
     for (let i = 0; i < textGroups.length; i++) {
         const frame = figma.createFrame();
@@ -43,12 +47,17 @@ export async function createFramesAndAddText(texts, textDirection) {
         frame.y = 0;
         frame.fills = [{ type: 'SOLID', color: hexToRgb(colors.backgroundAndNumber) }];
         frame.name = `Page ${pageNumber}`;
+        created.push(frame);
         const group = textGroups[i];
         if (group !== null) await templatesToUse[i](group, frame, textDirection);
         xOffset += 595 + 50;
         pageNumber++;
     }
-    if (templatesToUse.length > 0) figma.notify("Text layers and frames created successfully.");
+    if (created.length > 0) {
+        figma.currentPage.selection = created;
+        figma.viewport.scrollAndZoomIntoView(created);
+        figma.notify(`Created ${created.length} page${created.length === 1 ? '' : 's'}.`);
+    }
 }
 
 function processTextsForPagesAndTemplates(texts) {
@@ -70,23 +79,27 @@ function processTextsForPagesAndTemplates(texts) {
     ];
 
     let templatesToUse = [], cleanedTexts = [], sliceSizes = [], currentPageLines = 0, markerFound = false;
+    // Text before the first marker becomes a plain text page instead of being dropped.
+    if (texts.length > 0 && !/^#>page-(.*?)<#$/.test(texts[0].trim())) texts = ['#>page-simpletext<#', ...texts];
 
-    texts.forEach(text => {
-        const markerMatch = text.match(/^#>page-(.*?)<#$/);
+    for (let i = 0; i < texts.length; i++) {
+        const text = texts[i];
+        const markerMatch = text.trim().match(/^#>page-(.*?)<#$/);
         if (markerMatch) {
+            const pageType = markerMatch[1].trim().toLowerCase();
+            const templateMatch = allTemplates.find(t => t.use === pageType);
+            if (!templateMatch) return { error: `Unknown layout "${pageType}" in marker: ${text.trim()}` };
             if (markerFound) sliceSizes.push(currentPageLines);
             else markerFound = true;
             currentPageLines = 0;
-            const pageType = markerMatch[1].trim().toLowerCase();
-            const templateMatch = allTemplates.find(t => t.use === pageType);
-            if (templateMatch) templatesToUse.push(templateMatch.template);
-        } else if (markerFound) {
+            templatesToUse.push(templateMatch.template);
+        } else {
             cleanedTexts.push(text);
             currentPageLines++;
         }
-    });
+    }
 
-    if (currentPageLines > 0) sliceSizes.push(currentPageLines);
+    if (markerFound) sliceSizes.push(currentPageLines);
     let textGroups = generateTextGroups(cleanedTexts, sliceSizes);
     return { textGroups, templatesToUse };
 }
@@ -108,4 +121,5 @@ export function createImagePlaceholder(frame, startY, width, height, xPos = 55) 
     placeholder.fills = [{ type: 'SOLID', color: hexToRgb(colors.greyPlaceHolder) }];
     placeholder.cornerRadius = 25;
     frame.appendChild(placeholder);
+    return placeholder;
 }

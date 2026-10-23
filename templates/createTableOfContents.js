@@ -3,13 +3,7 @@
 import { colors, fontStyles } from '../constants.js';
 import { hexToRgb } from '../utilities.js';
 
-export async function loadFonts() {
-    await Promise.all([
-        figma.loadFontAsync(fontStyles.roxboroughBold),
-        figma.loadFontAsync(fontStyles.dmSansBold),
-        figma.loadFontAsync(fontStyles.dmSansRegular),
-    ]);
-}
+import { loadFonts } from '../textGeneration.js';
 
 // New function to generate a table of contents
 export async function createTableOfContents(rawEntries, frame) {

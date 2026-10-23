@@ -5,16 +5,6 @@ module.exports = {
   mode: 'development', // Use 'production' for deployment
   entry: {
     main: './code.js',
-    ui: './uiHandlers.js',
-  },
-  module: {
-    rules: [
-      {
-        test: /\.tsx?$/,
-        use: 'ts-loader',
-        exclude: /node_modules/,
-      },
-    ],
   },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],

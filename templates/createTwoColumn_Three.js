@@ -45,7 +45,7 @@ export async function createTwoColumn_Three(texts, frame, textDirection) {
     }
 
     // Text Layer 3 with ** style
-    if (texts.length > 3) {
+    if (texts.length > 2) {
         textLayerResult = await textGeneration.createTextLayer({
             text: `**${texts[2]}**`,
             yPos: yPos,
@@ -65,13 +65,14 @@ export async function createTwoColumn_Three(texts, frame, textDirection) {
         const styles = ["", ""]; // Assuming these texts don't have special styles
 
         // Call createColumnTextLayers for the two column texts
-        let columnCreationResult = await textGeneration.createColumnTextLayers({
+        columnCreationResult = await textGeneration.createColumnTextLayers({
             texts: [texts[3], texts[4]],
             initialYPos: yPos,
             frame: frame,
             columnWidths: columnWidths,
             columnXOffsets: columnXOffsets,
-            styles: styles
+            styles: styles,
+            textDirection: textDirection
         });
         yPos = columnCreationResult.yPos; // Update yPos with the returned value
     }
