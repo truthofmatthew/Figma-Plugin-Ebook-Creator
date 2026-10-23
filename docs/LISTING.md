@@ -36,6 +36,10 @@ Source and issues: https://github.com/truthofmatthew/Figma-Plugin-Ebook-Creator
 
 ebook, pdf, markdown, book, ai, layout, publishing, chatgpt, rtl, slides
 
+## Support contact (Publish dialog → Add the final details)
+
+truthofmatthew@gmail.com (replaces the old connect@mtkarimi.com)
+
 ## Network access note (shown on the listing)
 
 Optional AI writing and image generation with the user's own API key. Requests go straight from the plugin to the provider the user picks: api.anthropic.com, api.openai.com, generativelanguage.googleapis.com.
