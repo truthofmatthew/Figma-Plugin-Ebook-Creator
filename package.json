@@ -1,22 +1,28 @@
 {
-  "name": "Ebook Frame Creator",
-  "version": "0.2.0",
-  "description": "Simply create ebook pdf page's by copy and pasting your content into this plugin. at the moment it have only 14 template and they can not be edited before creation.",
-  "main": "code.js",
-  "scripts": {
-    "build": "webpack --mode=production",
-    "dev": "webpack --mode=development"
-  },
+  "name": "ebook-frame-creator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Turn Markdown or AI-written text into styled, editable ebook pages in Figma.",
   "author": "Mathew (MT) Karimi",
   "license": "ISC",
-  "devDependencies": {
-    "terser-webpack-plugin": "^5.3.10",
-    "webpack": "^5.90.3",
-    "webpack-cli": "^5.1.4"
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
-  "keywords": [
-    "chatgpt",
-    "pdf",
-    "automation"
-  ]
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.2.0",
+    "mdast-util-from-markdown": "^2.1.0",
+    "pdf-lib": "^1.17.1",
+    "preact": "^11.0.2"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.142.0",
+    "@types/mdast": "^4.0.4",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
 }
