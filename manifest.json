@@ -3,16 +3,11 @@
   "id": "1337309325864917425",
   "api": "1.0.0",
   "main": "dist/main.js",
+  "ui": "dist/ui.html",
   "documentAccess": "dynamic-page",
-  "capabilities": [],
-  "enableProposedApi": false,
-  "editorType": [
-    "figma"
-  ],
-  "ui": "ui.html",
+  "editorType": ["figma", "slides"],
   "networkAccess": {
-    "allowedDomains": [
-      "none"
-    ]
+    "allowedDomains": ["https://api.anthropic.com", "https://api.openai.com", "https://generativelanguage.googleapis.com"],
+    "reasoning": "Optional AI writing and image generation with the user's own API key. Requests go straight from the plugin to the provider the user picks."
   }
 }
