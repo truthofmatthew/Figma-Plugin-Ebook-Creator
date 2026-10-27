@@ -2,6 +2,8 @@
 
 Turn Markdown or AI-written text into styled, editable ebook pages in Figma, then export the book as one PDF.
 
+[Install from Figma Community](https://www.figma.com/community/plugin/1337309325864917425) · [Download 1.0.0](https://github.com/truthofmatthew/Figma-Plugin-Ebook-Creator/releases/tag/v1.0.0)
+
 ![Ebook Frame Creator](docs/screenshots/00-cover.png)
 
 ## What it does
@@ -17,6 +19,17 @@ Everything it creates is editable:
 - **Number badges and image placeholders** are components on an `Ebook components` page.
 
 It also works in **Figma Slides** (one slide per page) and with **right-to-left** text (Persian, Arabic, Hebrew), which gets mirrored layouts and a fitting font.
+
+## Screenshots
+
+Every page below was made by the plugin from [`examples/small-brand-playbook.md`](examples/small-brand-playbook.md).
+
+| | |
+|---|---|
+| ![Paste Markdown or AI text](docs/screenshots/02-paste.png) | ![Write the whole book with AI](docs/screenshots/03-generate.png) |
+| ![Choose a layout per page](docs/screenshots/04-layouts.png) | ![A layout for every kind of page](docs/screenshots/05-gallery.png) |
+| ![Re-theme the book with one click](docs/screenshots/06-themes.png) | ![Right-to-left ready](docs/screenshots/07-rtl.png) |
+| ![Export the whole book as a PDF](docs/screenshots/08-export.png) | |
 
 ## Writing the text
 
